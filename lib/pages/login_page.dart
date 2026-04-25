@@ -16,7 +16,43 @@ class _LoginPageState extends State<LoginPage>
   final TextEditingController emailInput = TextEditingController();
   final TextEditingController passwordInput= TextEditingController();
 
+  final FocusNode emailFocus = FocusNode();
+  final FocusNode passwordFocus = FocusNode();
+
   bool isPasswordVisible = false;
+
+  @override
+  void dispose() {
+    emailInput.dispose();
+    passwordInput.dispose();
+    emailFocus.dispose();
+    passwordFocus.dispose();
+    super.dispose();
+  }
+
+  //login function
+  void _login()
+  {
+    if (emailInput.text == "a" && passwordInput.text == "1")
+    {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainPage(),
+          )
+      );
+    }
+    else
+    {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Kullanıcı Adı yada Şifre Yanlış"),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context)
@@ -38,6 +74,11 @@ class _LoginPageState extends State<LoginPage>
                       // Email
                       TextField(
                         controller: emailInput,
+                        focusNode: emailFocus,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(passwordFocus);
+                        },
                         decoration: const InputDecoration(
                           labelText: "E-mail",
                         ),
@@ -48,7 +89,12 @@ class _LoginPageState extends State<LoginPage>
                       // Password
                       TextField(
                         controller: passwordInput,
+                        focusNode: passwordFocus,
                         obscureText: !isPasswordVisible,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_){
+                          _login();
+                        },
                         decoration:  InputDecoration(
                           labelText: "Şifre",
 
@@ -87,29 +133,11 @@ class _LoginPageState extends State<LoginPage>
                             child: const Text("Kaydol"),
                           ),
 
-                          //  Login ButtonS
+                          //  Login Button
                           ElevatedButton(
                             onPressed: ()
                             {
-                              if (emailInput.text == "a" && passwordInput.text == "1")
-                              {
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const MainPage(),
-                                    )
-                                );
-                              }
-                              else
-                              {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Kullanıcı Adı yada Şifre Yanlış"),
-                                    duration: Duration(seconds: 3),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
+                              _login();
                             },
                             child: const Text("Giriş Yap"),
                           ),

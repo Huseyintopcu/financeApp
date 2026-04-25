@@ -14,6 +14,7 @@ class _SignUpPageState extends State<signUpPage> {
   final TextEditingController confirmPassword = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
+
   bool hasLower = false;
   bool hasUpper = false;
   bool hasNumber = false;
