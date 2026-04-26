@@ -1,4 +1,4 @@
-import 'package:finance_app/pages/singUp_page.dart';
+import 'package:finance_app/pages/signUp_page.dart';
 import 'package:finance_app/pages/main_page.dart';
 import 'package:flutter/material.dart';
 

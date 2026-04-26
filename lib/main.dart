@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
-import 'pages/singUp_page.dart';
+import 'pages/signUp_page.dart';
 import 'pages/main_page.dart';
 
-void main() {
-  runApp(const FinanceApp());
+
+void main() async
+{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool("islogedIn") ?? false;
+  runApp(FinanceApp(isLoggedIn: isLoggedIn));
 }
 
 class FinanceApp extends StatelessWidget {
-  const FinanceApp({super.key});
+  final bool  isLoggedIn;
+
+  const FinanceApp({super.key,required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Finance App',
-      home: const LoginPage(),
+      home: isLoggedIn ? const MainPage() : const LoginPage(),
     );
   }
 }
