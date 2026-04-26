@@ -14,6 +14,10 @@ class _SignUpPageState extends State<signUpPage> {
   final TextEditingController confirmPassword = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
+  final FocusNode passwordFocus = FocusNode();
+  final FocusNode confirmFocus = FocusNode();
+  final FocusNode emailFocus = FocusNode();
+
 
   bool hasLower = false;
   bool hasUpper = false;
@@ -52,6 +56,9 @@ class _SignUpPageState extends State<signUpPage> {
     emailController.dispose();
     password.dispose();
     confirmPassword.dispose();
+    passwordFocus.dispose();
+    confirmFocus.dispose();
+    emailFocus.dispose();
     super.dispose();
   }
 
@@ -70,6 +77,12 @@ class _SignUpPageState extends State<signUpPage> {
               // Email
               TextField(
                 controller: emailController,
+                focusNode: emailFocus,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_)
+                {
+                  FocusScope.of(context).requestFocus(passwordFocus);
+                },
                 decoration: const InputDecoration(
                   labelText: "E-mail",
                 ),
@@ -82,9 +95,15 @@ class _SignUpPageState extends State<signUpPage> {
                 controller: password,
                 onChanged: checkPassword,
                 obscureText: !isPasswordVisible,
+                focusNode: passwordFocus,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_)
+                {
+                  FocusScope.of(context).requestFocus(confirmFocus);
+                },
                 decoration:  InputDecoration(
                   labelText: "Şifre",
-
+                  //Password Visibilty
                   suffixIcon: IconButton(
                     icon: Icon(
                       isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -109,7 +128,7 @@ class _SignUpPageState extends State<signUpPage> {
                 obscureText: !isPasswordVisible2,
                 decoration:  InputDecoration(
                   labelText: "Şifre  Tekrar",
-
+                    // Password confirm visibilty
                     suffixIcon: IconButton(
                       icon: Icon(
                         isPasswordVisible2 ? Icons.visibility : Icons.visibility_off,

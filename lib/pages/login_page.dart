@@ -76,7 +76,8 @@ class _LoginPageState extends State<LoginPage>
                         controller: emailInput,
                         focusNode: emailFocus,
                         textInputAction: TextInputAction.next,
-                        onSubmitted: (_) {
+                        onSubmitted: (_)
+                        {
                           FocusScope.of(context).requestFocus(passwordFocus);
                         },
                         decoration: const InputDecoration(
@@ -92,7 +93,8 @@ class _LoginPageState extends State<LoginPage>
                         focusNode: passwordFocus,
                         obscureText: !isPasswordVisible,
                         textInputAction: TextInputAction.done,
-                        onSubmitted: (_){
+                        onSubmitted: (_)
+                        {
                           _login();
                         },
                         decoration:  InputDecoration(
