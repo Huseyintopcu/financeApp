@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/login_page.dart';
-import 'pages/home_page.dart';
 import 'pages/signUp_page.dart';
 import 'pages/main_page.dart';
+import 'pages/settings_page.dart';
 
 
 void main() async
@@ -11,7 +11,7 @@ void main() async
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool("islogedIn") ?? false;
+  final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
   runApp(FinanceApp(isLoggedIn: isLoggedIn));
 }
 

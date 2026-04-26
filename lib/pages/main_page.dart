@@ -1,3 +1,4 @@
+import 'package:finance_app/pages/settings_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +27,7 @@ class _MainPageState extends State<MainPage>
     const HomeDashboard(),
     const Center(child: Text("İşlemler Sayfası")),
     const Center(child: Text("Analiz Sayfası")),
-    const Center(child: Text("Ayarlar Sayfası")),
+    const SettingsPage(),
   ];
 
   @override

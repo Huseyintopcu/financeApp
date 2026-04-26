@@ -1,6 +1,7 @@
 import 'package:finance_app/pages/signUp_page.dart';
 import 'package:finance_app/pages/main_page.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget
 {
@@ -31,10 +32,13 @@ class _LoginPageState extends State<LoginPage>
   }
 
   //login function
-  void _login()
+  void _login() async
   {
     if (emailInput.text == "a" && passwordInput.text == "1")
     {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool("isLoggedIn", true);
+
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
