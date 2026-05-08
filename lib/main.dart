@@ -1,3 +1,4 @@
+import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/login_page.dart';
@@ -10,9 +11,8 @@ void main() async
 {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
-  runApp(FinanceApp(isLoggedIn: isLoggedIn));
+  bool loggedIn = await AuthService.isLoggedIn();
+  runApp(FinanceApp(isLoggedIn: loggedIn ));
 }
 
 class FinanceApp extends StatelessWidget {

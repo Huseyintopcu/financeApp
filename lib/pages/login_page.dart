@@ -1,7 +1,10 @@
 import 'package:finance_app/pages/signUp_page.dart';
 import 'package:finance_app/pages/main_page.dart';
+import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget
 {
@@ -34,22 +37,16 @@ class _LoginPageState extends State<LoginPage>
   //login function
   void _login() async
   {
-    if (emailInput.text == "a" && passwordInput.text == "1")
-    {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool("isLoggedIn", true);
+    bool success = await AuthService.login(emailInput.text, passwordInput.text);
 
+    if (success) {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MainPage(),
-          )
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
       );
-    }
-    else
-    {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Kullanıcı Adı yada Şifre Yanlış"),
           duration: Duration(seconds: 3),
           backgroundColor: Colors.red,
@@ -132,7 +129,7 @@ class _LoginPageState extends State<LoginPage>
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const signUpPage(),
+                                  builder: (context) => const SignUpPage(),
                                 ),
                               );
                             },
@@ -154,8 +151,7 @@ class _LoginPageState extends State<LoginPage>
               )
             ),
           ),
-        )
-        ,
+        ),
       ),
     );
   }

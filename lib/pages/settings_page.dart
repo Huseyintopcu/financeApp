@@ -1,4 +1,5 @@
 import 'package:finance_app/pages/login_page.dart';
+import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,7 @@ class SettingsPage extends StatelessWidget
 
   void logout(BuildContext context) async
   {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool("isLoggedIn", false);
+    await AuthService.logout();
 
     Navigator.pushAndRemoveUntil(
         context,

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 
-class signUpPage extends StatefulWidget
+
+class SignUpPage extends StatefulWidget
 {
-  const signUpPage({super.key});
+  const SignUpPage({super.key});
 
   @override
-  State<signUpPage> createState() => _SignUpPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<signUpPage> {
-  final TextEditingController password = TextEditingController();
-  final TextEditingController confirmPassword = TextEditingController();
+class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
 
   final FocusNode passwordFocus = FocusNode();
   final FocusNode confirmFocus = FocusNode();
@@ -25,11 +28,22 @@ class _SignUpPageState extends State<signUpPage> {
   bool hasLength = false;
   bool isPasswordVisible = false;
   bool isPasswordVisible2 = false;
+  bool otpSent = false;
+  bool otpVerified = false;
 
   // Password security requirement check functions
-  bool isValidPassword(String password) {
+  bool isValidPassword(String password)
+  {
     final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$');
     return regex.hasMatch(password);
+  }
+
+
+  bool isValidEmail(String email)
+  {
+    return RegExp(
+      r'^[^@]+@[^@]+\.[^@]+',
+    ).hasMatch(email);
   }
 
   void checkPassword(String value) {
@@ -41,25 +55,88 @@ class _SignUpPageState extends State<signUpPage> {
     });
   }
 
-  //listener for password requitments
-  @override
-  void initState() {
-    super.initState();
-
-    password.addListener(() {
-      setState(() {});
-    });
-  }
 
   @override
   void dispose() {
     emailController.dispose();
-    password.dispose();
-    confirmPassword.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    otpController.dispose();
     passwordFocus.dispose();
     confirmFocus.dispose();
     emailFocus.dispose();
     super.dispose();
+  }
+
+  // Register Function
+  void _register() async
+  {
+    final result = await AuthService.register(emailController.text, passwordController.text);
+
+    if(result.success)
+      {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+            content: Text(result.message),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    else
+      {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message),
+          backgroundColor: Colors.red,
+          ),
+        );
+      }
+  }
+
+    bool validateInputs()
+    {
+    if(!isValidEmail(emailController.text))
+      {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Geçersiz Mail Adresi",
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return false;
+      }
+
+    if (!isValidPassword(passwordController.text))
+    {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Şifre en az 1 büyük harf, 1 küçük harf, 1 sayı ve 8 karakter içermeli",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    if (passwordController.text != confirmPasswordController.text)
+    {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Şifreler Uyuşmuyor",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return false;
+    }
+
+    return true;
   }
 
   @override
@@ -90,9 +167,50 @@ class _SignUpPageState extends State<signUpPage> {
 
               const SizedBox(height: 15),
 
+              // CODE SEND BUTTON
+              ElevatedButton(
+                  onPressed: () async
+                  {
+                    if(!isValidEmail(emailController.text))
+                    {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Geçersiz Mail Adresi",
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                    else
+                      {
+                        final success = await AuthService.sendOtp(emailController.text);
+
+                        if(success)
+                        {
+                          setState(() {
+                            otpSent =true;
+                          });
+                        }
+                      }
+
+                  },
+                  child: Text("Kod Gönder")
+              ),
+
+              const SizedBox(height: 15),
+
+              if(otpSent)
+                TextField(
+                  controller: otpController,
+                  decoration: const InputDecoration(labelText: "Doğrulama Kodu"),
+                ),
+
+              const SizedBox(height: 15),
+
               // Password
               TextField(
-                controller: password,
+                controller: passwordController,
                 onChanged: checkPassword,
                 obscureText: !isPasswordVisible,
                 focusNode: passwordFocus,
@@ -124,8 +242,9 @@ class _SignUpPageState extends State<signUpPage> {
 
               // Password check
               TextField(
-                controller: confirmPassword,
+                controller: confirmPasswordController,
                 obscureText: !isPasswordVisible2,
+                focusNode: confirmFocus,
                 decoration:  InputDecoration(
                   labelText: "Şifre  Tekrar",
                     // Password confirm visibilty
@@ -145,51 +264,61 @@ class _SignUpPageState extends State<signUpPage> {
                 ),
               ),
 
-              ElevatedButton(
-                  onPressed: ()
-                  {
-                    if (!isValidPassword(password.text)) // password security check
-                        {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Şifre en az 1 büyük harf, 1 küçük harf, 1 sayı ve 8 karakter içermeli"),
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-                    else if  (password.text!=confirmPassword.text)
-                    {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Hata"),
-                          content: const Text("Şifreler uyuşmuyor"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("Tamam"),
+              const SizedBox(height: 15),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                      onPressed: () async
+                      {
+                        final verified = await AuthService.verifyOtp(
+                          emailController.text,
+                          otpController.text,
+                        );
+
+                        if (verified) {
+
+                          setState(() {
+                            otpVerified = true;
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Email doğrulandı"),
+                              backgroundColor: Colors.green,
                             ),
-                          ],
-                        ),
-                      );
-                      return;
-                    }
-                    else
-                    {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: const Text("Kayıt başarılı"),
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text("Hesap Oluştur")
+                          );
+
+                        } else {
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Kod Hatalı"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                    child: const Text("Kodu Doğrula"),
+                  ),
+
+
+
+                  ElevatedButton(
+                      onPressed: otpVerified ? () async
+                      {
+                        if(await validateInputs())
+                        {
+                          _register();
+                        }
+                      }
+                      :null,
+                      child: const Text("Hesap Oluştur")
+                  ),
+                ],
               ),
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -205,7 +334,7 @@ class _SignUpPageState extends State<signUpPage> {
                     const Text("✔ Rakam", style: TextStyle(color: Colors.green))
                   else
                     const Text("✖ Rakam", style: TextStyle(color: Colors.red)),
-                  if (hasLower)
+                  if (hasLength)
                     const Text("✔ En az 8 karakter", style: TextStyle(color: Colors.green))
                   else
                     const Text("✖ En az 8 karakter", style: TextStyle(color: Colors.red)),
