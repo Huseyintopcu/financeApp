@@ -1,10 +1,9 @@
+import 'package:finance_app/pages/forgotPassword_page.dart';
 import 'package:finance_app/pages/signUp_page.dart';
 import 'package:finance_app/pages/main_page.dart';
 import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 
 class LoginPage extends StatefulWidget
 {
@@ -146,6 +145,20 @@ class _LoginPageState extends State<LoginPage>
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 20),
+
+                      // Forgot Password
+                      GestureDetector(
+                        onTap: () async
+                        {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ForgotPasswordPage(),),
+                          );
+                        },
+                        child: const Text("Şifremi unuttum?",style: TextStyle(color: Colors.blue),)
+                      )
                     ],
                   )
               )

@@ -5,6 +5,7 @@ import 'pages/login_page.dart';
 import 'pages/signUp_page.dart';
 import 'pages/main_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/forgotPassword_page.dart';
 
 
 void main() async

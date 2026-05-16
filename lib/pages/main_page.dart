@@ -1,3 +1,4 @@
+import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -89,9 +90,7 @@ class _HomeDashboardState extends State<HomeDashboard>
       appBar: AppBar(
         title: const Text("Finans Dashboard"),
       ),
-
-
-
+      
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -174,7 +173,13 @@ class _HomeDashboardState extends State<HomeDashboard>
                 children: [
 
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () 
+                    {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddIncomePage()),
+                      );
+                    },
                     child: const Text("+ Gelir"),
                   ),
 

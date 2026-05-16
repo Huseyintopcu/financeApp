@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
+import 'dart:async';
 
 
 class SignUpPage extends StatefulWidget
@@ -11,7 +11,8 @@ class SignUpPage extends StatefulWidget
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends State<SignUpPage>
+{
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -28,8 +29,10 @@ class _SignUpPageState extends State<SignUpPage> {
   bool hasLength = false;
   bool isPasswordVisible = false;
   bool isPasswordVisible2 = false;
-  bool otpSent = false;
   bool otpVerified = false;
+  bool isSend = false;
+  int countdown = 0;
+  Timer ? timer;
 
   // Password security requirement check functions
   bool isValidPassword(String password)
@@ -38,7 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
     return regex.hasMatch(password);
   }
 
-
+  // Email format checking
   bool isValidEmail(String email)
   {
     return RegExp(
@@ -46,6 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
     ).hasMatch(email);
   }
 
+  // Password format checking
   void checkPassword(String value) {
     setState(() {
       hasLower = value.contains(RegExp(r'[a-z]'));
@@ -65,6 +69,7 @@ class _SignUpPageState extends State<SignUpPage> {
     passwordFocus.dispose();
     confirmFocus.dispose();
     emailFocus.dispose();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -87,8 +92,10 @@ class _SignUpPageState extends State<SignUpPage> {
     else
       {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message),
-          backgroundColor: Colors.red,
+          SnackBar(
+            content: Text(result.message),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -139,6 +146,31 @@ class _SignUpPageState extends State<SignUpPage> {
     return true;
   }
 
+  // Timer function
+  void startCountdown()
+  {
+    countdown = 60;
+
+    timer = Timer.periodic(
+      const Duration(seconds: 1),
+        (timer)
+        {
+          if(countdown == 0)
+            {
+              timer.cancel();
+            }
+          else
+            {
+              setState(()
+              {
+                countdown--;
+              });
+            }
+        }
+    );
+  }
+
+
   @override
   Widget  build(BuildContext context)
   {
@@ -169,15 +201,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
               // CODE SEND BUTTON
               ElevatedButton(
-                  onPressed: () async
+                  onPressed: countdown > 0 ? null :() async
                   {
                     if(!isValidEmail(emailController.text))
                     {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            "Geçersiz Mail Adresi",
-                          ),
+                          content: Text("Geçersiz Mail Adresi",),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -186,25 +216,28 @@ class _SignUpPageState extends State<SignUpPage> {
                       {
                         final success = await AuthService.sendOtp(emailController.text);
 
-                        if(success)
-                        {
-                          setState(() {
-                            otpSent =true;
-                          });
-                        }
+                        startCountdown();
+                        isSend = true;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Doğrulama Kodu Maile Gönderildi"),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       }
 
                   },
-                  child: Text("Kod Gönder")
+                  child: Text( countdown > 0 ? "Tekrar Gönder ($countdown)":"Kod Gönder")
               ),
 
               const SizedBox(height: 15),
 
-              if(otpSent)
-                TextField(
-                  controller: otpController,
-                  decoration: const InputDecoration(labelText: "Doğrulama Kodu"),
-                ),
+              // CONFİRM CODE
+              TextField(
+                controller: otpController,
+                decoration: const InputDecoration(labelText: "Doğrulama Kodu"),
+              ),
 
               const SizedBox(height: 15),
 
@@ -269,18 +302,22 @@ class _SignUpPageState extends State<SignUpPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  // Code Check Button
                   ElevatedButton(
-                      onPressed: () async
+                      onPressed: isSend ? () async
                       {
                         final verified = await AuthService.verifyOtp(
                           emailController.text,
                           otpController.text,
                         );
+                        print("deneme ${verified.success}");
 
-                        if (verified) {
-
-                          setState(() {
+                        if (verified.success)
+                        {
+                          setState(()
+                          {
                             otpVerified = true;
+                            isSend = false;
                           });
 
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -290,16 +327,16 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           );
 
-                        } else {
-
+                        } else
+                        {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Kod Hatalı"),
+                             SnackBar(
+                              content: Text(verified.message),
                               backgroundColor: Colors.red,
                             ),
                           );
                         }
-                      },
+                      }:null,
                     child: const Text("Kodu Doğrula"),
                   ),
 
