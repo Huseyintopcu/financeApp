@@ -65,43 +65,28 @@ class _AddIncomePageState extends State<AddIncomePage>
           transactionDate: selectedDate,
       );
 
-      final token = await storage.read(key: "token");
 
-      if (token == null) {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Oturum bulunamadı"),
-          ),
-        );
-
-        setState(() {
-          isLoading = false;
-        });
-
-        return;
-      }
-
-      final success = await IncomeService().createIncome(
-        request,
-        token,
-      );
-
+      final success = await IncomeService().createIncome(request);
+      print(success);
       if (!mounted) return;
+      print(success);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gelir başarıyla eklendi"),
+            backgroundColor: Colors.green,
           ),
         );
 
         Navigator.pop(context, true);
-      } else {
+      }
+      else
+      {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gelir eklenemedi"),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -111,6 +96,7 @@ class _AddIncomePageState extends State<AddIncomePage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Hata: $e"),
+          backgroundColor: Colors.red,
         ),
       );
     }

@@ -1,7 +1,7 @@
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class TokenStorege
+class TokenStorage
 {
   static const _storage = FlutterSecureStorage();
   static const _key = "token";
@@ -11,15 +11,9 @@ class TokenStorege
     await _storage.write(key: _key, value:token);
   }
 
-  static Future<String> getToken() async
+  static Future<String?> getToken() async
   {
-    final token = await _storage.read(key: _key);
-
-    if (token == null)
-    {
-      throw Exception("Token yok");
-    }
-    return token;
+    return await _storage.read(key: _key);
   }
 
   static Future<void> deleteToken() async

@@ -1,23 +1,28 @@
 import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../core/network/api_client.dart';
 import '../models/Income_Model.dart';
+
 
 class IncomeService
 {
-  static const String baseUrl = "http://10.0.2.2:8080/api/incomes";
+  static final Dio _dio = ApiCLient.dio;
+  static const FlutterSecureStorage storage = FlutterSecureStorage();
 
-  Future<bool> createIncome(CreateIncomeRequest request, String token) async
+  Future<bool> createIncome(CreateIncomeRequest request) async
   {
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers:
-        {
-          "Content-Type" : "application/json",
-          "Authorization" : "Bearer $token",
-        },
-      body: jsonEncode(request.toJson()),
-    );
-    return response.statusCode == 201;
+    try
+    {
+      final response = await _dio.post(
+        "/income/add",
+        data: request.toJson(),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    }
+    catch (e)
+    {
+      return false;
+    }
   }
 }

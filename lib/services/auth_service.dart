@@ -1,31 +1,29 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:finance_app/models/register_response.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:finance_app/security/token_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../core/network/api_client.dart';
 
 class AuthService {
 
-  static const String baseUrl = "http://10.0.2.2:8080";
+  static final Dio _dio = ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
 
   // REGISTER
   static Future<RegisterResponse> register(String email, String password,) async
   {
     try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/auth/register"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
+      final response = await _dio.post(
+        "/auth/register",
+        data:
+        {
           "email": email,
-          "password": password
-        }),
+          "password": password,
+        }
       );
 
-      final data = jsonDecode(response.body);
-
-      return RegisterResponse.fromJson(data);
-
+      return RegisterResponse.fromJson(response.data);
     } catch (e) {
       return RegisterResponse(success: false, message: "Bağlantı Hatası",);
     }
@@ -35,25 +33,20 @@ class AuthService {
   {
     try
     {
-      final response = await http.post(
-        Uri.parse("$baseUrl/auth/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
+      final response = await _dio.post(
+          "/auth/login",
+          data:
+          {
+            "email": email,
+            "password": password,
+          }
       );
 
-      if (response.statusCode != 200)
-        {
-          return false;
-        }
-
-      final Map<String, dynamic> data = jsonDecode(response.body);
+      final data = response.data;
 
       if (data["success"] == true && data["token"] != null)
       {
-        await storage.write(
-          key:"token",
-          value: data["token"],
-        );
+        await TokenStorage.saveToken(data["token"]);
         return true;
       }
       return false;
@@ -69,15 +62,15 @@ class AuthService {
   {
     try
         {
-          final response = await http.post(
-            Uri.parse("$baseUrl/auth/reset-password"),
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({"email": email, "password": newPassword}),
+          final response = await _dio.post(
+            "/auth/reset-password",
+            data:
+            {
+              "email": email,
+              "password": newPassword,
+            },
           );
-
-          final data = jsonDecode(response.body);
-
-          return RegisterResponse.fromJson(data);
+          return RegisterResponse.fromJson(response.data);
         }
     catch (e)
     {
@@ -87,54 +80,62 @@ class AuthService {
 
   // SEND OTP
   static Future<bool> sendOtp(String email) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/auth/send-otp"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"email": email}),
-    );
+    try
+    {
+      final response = await _dio.post(
+        "/auth/send-otp",
+        data: {"email": email},
+      );
 
-    return response.statusCode == 200;
+      return response.statusCode == 200;
+    }
+    catch (e)
+    {
+      return false;
+    }
+
   }
 
   //  VERIFY OTP
   static Future<RegisterResponse> verifyOtp(String email, String code) async
   {
-    final response = await http.post(
-      Uri.parse("$baseUrl/auth/verify-otp"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "email": email,
-        "code": code
-      }),
-    );
-    print("STATUS: ${response.statusCode}");
-    print("BODY: '${response.body}'");
+    try
+    {
+      final response = await _dio.post(
+        "/auth/verify-otp",
+        data:
+        {
+          "email": email,
+          "code": code,
+        },
+      );
 
-    final data=jsonDecode(response.body);
-
-    print(response.body.trim());
-
-    return RegisterResponse.fromJson(data);
+      return RegisterResponse.fromJson(response.data);
+    } catch (e)
+    {
+      return RegisterResponse(
+        success: false,
+        message: "Bağlantı Hatası",
+      );
+    }
   }
 
   // LOGOUT
   static Future<void> logout() async
   {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("token");
+    await TokenStorage.deleteToken();
   }
 
-  // TOKEN KONTROL
+  // TOKEN CHECK
   static Future<bool> isLoggedIn() async
   {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("token") != null;
+    final token = await TokenStorage.getToken();
+    return token != null;
   }
 
   // TOKEN GET
   static Future<String?> getToken() async
   {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("token");
+    return await TokenStorage.getToken();
   }
 }
