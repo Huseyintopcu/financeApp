@@ -1,3 +1,4 @@
+import 'package:finance_app/security/token_storage.dart';
 import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
@@ -9,6 +10,9 @@ void main() async
 {
   WidgetsFlutterBinding.ensureInitialized();
   print("MAIN STARTED");
+
+  await TokenStorage.init();
+
   ApiCLient.init();
 
   bool loggedIn = await AuthService.isLoggedIn();

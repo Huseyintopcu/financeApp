@@ -16,9 +16,10 @@ class ApiCLient
   static void init()
   {
     dio.interceptors.add(
-      QueuedInterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await TokenStorage.getToken();
+      InterceptorsWrapper(
+        onRequest: (options, handler)
+        {
+          final token =  TokenStorage.getToken();
 
           print("🔥 REQUEST START");
           print("TOKEN: $token");

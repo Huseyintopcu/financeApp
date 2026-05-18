@@ -1,5 +1,7 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
+import 'package:finance_app/services/Income_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -83,6 +85,25 @@ class HomeDashboard extends StatefulWidget
 class _HomeDashboardState extends State<HomeDashboard>
 {
   double savingTarget=10;
+  double income = 0;
+
+  @override
+  void initState()
+  {
+    super.initState();
+    loadIncome();
+  }
+
+  Future<void> loadIncome() async
+  {
+    final result = await IncomeService().getMontlyIncome();
+
+    setState(()
+    {
+      income =result;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,55 +120,101 @@ class _HomeDashboardState extends State<HomeDashboard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children:
             [
+              SizedBox(
+                width: double.infinity,
+                height: 110,
+                child: Card(
+                  color: Colors.blue.shade100,
+                  child: Padding(
+                    padding:const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(
+                            "Kalan Bakiye",
+                            style: TextStyle(fontSize: 16,color: Colors.orange)
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "15000",
+                          style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 8,),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children:
                 [
                   // Income Card
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: const [
-                          Text(
-                              "Toplam Bakiye",
-                              style: TextStyle(fontSize: 16)
+                  Expanded(
+                    child: SizedBox(
+                      height: 110,
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children:  [
+                              Text(
+                                  "Toplam Bakiye",
+                                  style: TextStyle(fontSize: 16)
+                              ),
+                              SizedBox(height: 8),
+                              AutoSizeText(
+                                  "₺$income",
+                                  maxLines: 1,
+                                  minFontSize: 8,
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold
+                                  )
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 10),
-                          Text(
-                              "₺12,450",
-                              style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold
-                              )
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    )
+
                   ),
 
                   // Savings Target Card
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Text(
-                            "Tassaruf Hedefi",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                              "₺$savingTarget",
-                            style: TextStyle(
-                                fontSize: 24,
-                              fontWeight: FontWeight.bold
+                  Expanded(
+                      child:Card(
+                        child:SizedBox(
+                          height: 105,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Tassaruf Hedefi",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                SizedBox(height: 8),
+                                AutoSizeText(
+                                  "₺$savingTarget",
+                                  maxLines: 1,
+                                  minFontSize: 8,
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                )
+                              ],
                             ),
-                          )
-                        ],
-                      ),
-                    ),
+                          ),
+                        )
+                      )
+
                   )
+
                 ]
               ),
 
@@ -173,12 +240,17 @@ class _HomeDashboardState extends State<HomeDashboard>
                 children: [
 
                   ElevatedButton(
-                    onPressed: () 
+                    onPressed: () async
                     {
-                      Navigator.push(
+                      final result = await Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const AddIncomePage()),
                       );
+
+                      if (result)
+                        {
+                          loadIncome();
+                        }
                     },
                     child: const Text("+ Gelir"),
                   ),

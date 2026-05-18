@@ -25,4 +25,22 @@ class IncomeService
       return false;
     }
   }
+
+  Future<double> getMontlyIncome() async
+  {
+    try
+    {
+      final response = await _dio.get("/income/monthly-total");
+      if(response.statusCode == 200)
+        {
+          return (response.data as num).toDouble();
+        }
+      return 0;
+    }
+    catch (e)
+    {
+      return 0;
+    }
+  }
+
 }
