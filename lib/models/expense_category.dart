@@ -1,0 +1,12 @@
+ enum ExpenseCategory
+{
+  FOOD,
+  SNACKS,
+  TRANSPORT,
+  HEALTH,
+  BILLS,
+  ENTERTAINMENT,
+  SHOPPING,
+  EDUCATION,
+  OTHER
+}

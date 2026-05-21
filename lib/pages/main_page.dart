@@ -1,7 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:finance_app/services/Income_service.dart';
+import 'package:finance_app/services/expense_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -86,21 +88,29 @@ class _HomeDashboardState extends State<HomeDashboard>
 {
   double savingTarget=10;
   double income = 0;
+  double expense = 0;
+  double balance = 0;
 
   @override
   void initState()
   {
     super.initState();
-    loadIncome();
+    loadData();
   }
 
-  Future<void> loadIncome() async
+
+  // Monthly total expense function
+  Future<void> loadData() async
   {
-    final result = await IncomeService().getMontlyIncome();
+    final inc = await IncomeService().getMonthlyIncome();
+    final exp = await ExpenseService().getMonthlyExpense();
 
     setState(()
     {
-      income =result;
+      income = inc;
+      expense = exp;
+      print(expense);
+      balance= income - expense;
     });
   }
 
@@ -135,7 +145,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                         ),
                         SizedBox(height: 8),
                         Text(
-                          "15000",
+                          "$balance",
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold
@@ -163,7 +173,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                           child: Column(
                             children:  [
                               Text(
-                                  "Toplam Bakiye",
+                                  "Toplam Gelir",
                                   style: TextStyle(fontSize: 16)
                               ),
                               SizedBox(height: 8),
@@ -214,7 +224,6 @@ class _HomeDashboardState extends State<HomeDashboard>
                       )
 
                   )
-
                 ]
               ),
 
@@ -247,16 +256,27 @@ class _HomeDashboardState extends State<HomeDashboard>
                           MaterialPageRoute(builder: (context) => const AddIncomePage()),
                       );
 
-                      if (result)
+                      if (result == true)
                         {
-                          loadIncome();
+                          loadData();
                         }
                     },
                     child: const Text("+ Gelir"),
                   ),
 
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async
+                    {
+                      final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context)=> const AddExpensePage()),
+                      );
+
+                      if (result == true)
+                        {
+                          loadData();
+                        }
+                    },
                     child: const Text("+ Gider"),
                   ),
 

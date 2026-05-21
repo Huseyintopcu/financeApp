@@ -1,23 +1,19 @@
-import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:finance_app/core/network/api_client.dart';
+import 'package:finance_app/models/expense_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../core/network/api_client.dart';
-import '../models/Income_model.dart';
 
-
-class IncomeService
+class ExpenseService
 {
-  static final Dio _dio = ApiCLient.dio;
+  static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
 
-  Future<bool> createIncome(CreateIncomeRequest request) async
+  Future<bool> createExpense(CreateExpenseRequest request) async
   {
     try
     {
-      final response = await _dio.post(
-        "/income/add",
-        data: request.toJson(),
-      );
+      final response = await _dio.post("/expense/add", data: request.toJson(),);
       return response.statusCode == 200 || response.statusCode == 201;
     }
     catch (e)
@@ -26,12 +22,12 @@ class IncomeService
     }
   }
 
-  Future<double> getMonthlyIncome() async
+  Future<double> getMonthlyExpense() async
   {
     try
     {
-      final response = await _dio.get("/income/monthly-total");
-      if(response.statusCode == 200)
+      final response = await _dio.get("/expense/monthly-total");
+      if (response.statusCode == 200)
         {
           return (response.data as num).toDouble();
         }
@@ -42,5 +38,4 @@ class IncomeService
       return 0;
     }
   }
-
 }

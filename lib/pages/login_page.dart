@@ -25,7 +25,8 @@ class _LoginPageState extends State<LoginPage>
   bool isPasswordVisible = false;
 
   @override
-  void dispose() {
+  void dispose()
+  {
     emailInput.dispose();
     passwordInput.dispose();
     emailFocus.dispose();

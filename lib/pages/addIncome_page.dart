@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:finance_app/models/Income_Model.dart';
+import 'package:finance_app/models/Income_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -26,6 +26,14 @@ class _AddIncomePageState extends State<AddIncomePage>
   DateTime selectedDate = DateTime.now();
 
   bool isLoading = false;
+
+  @override
+  void dispose()
+  {
+    _titleController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
 
   // Select Date Function
   Future<void> pickDate() async
@@ -67,9 +75,8 @@ class _AddIncomePageState extends State<AddIncomePage>
 
 
       final success = await IncomeService().createIncome(request);
-      print(success);
+
       if (!mounted) return;
-      print(success);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +97,9 @@ class _AddIncomePageState extends State<AddIncomePage>
           ),
         );
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,88 +122,89 @@ class _AddIncomePageState extends State<AddIncomePage>
   @override
   Widget build(BuildContext context)
   {
-    return Scaffold(appBar: AppBar(title: const Text("Gelir Ekle"),),
-    body: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: "Gelir Başlığı"
+    return Scaffold(
+      appBar: AppBar(title: const Text("Gelir Ekle"),),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: "Gelir Başlığı"
+                ),
+                validator: (value)
+                {
+                  if (value == null || value.trim().isEmpty)
+                    {
+                      return "Başlık boş olamaz";
+                    }
+                  return null;
+                },
               ),
-              validator: (value)
-              {
-                if (value == null || value.trim().isEmpty)
-                  {
-                    return "Başlık boş olamaz";
-                  }
-                return null;
-              },
-            ),
 
-            const SizedBox(height: 16,),
+              const SizedBox(height: 16,),
 
-            TextFormField(
-              controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: "Miktar",
+              TextFormField(
+                controller: _amountController,
+                decoration: const InputDecoration(
+                  labelText: "Miktar",
+                ),
+                validator: (value)
+                {
+                  if (value == null || value.isEmpty)
+                    {
+                      return "Miktar giriniz";
+                    }
+                  if (double.tryParse(value) == null)
+                    {
+                      return "Geçerli sayı giriniz";
+                    }
+                  return null;
+                },
               ),
-              validator: (value)
-              {
-                if (value == null || value.isEmpty)
-                  {
-                    return "Miktar giriniz";
-                  }
-                if (double.tryParse(value) == null)
-                  {
-                    return "Geçerli sayı giriniz";
-                  }
-                return null;
-              },
-            ),
 
-            const SizedBox(height: 16,),
+              const SizedBox(height: 16,),
 
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Tarih: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}",),
+                    TextButton(
+                      onPressed: pickDate,
+                      child: const Text("Seç"),),
+                  ],
+                ),
               ),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Tarih: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}",),
-                  TextButton(
-                    onPressed: pickDate,
-                    child: const Text("Seç"),),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 16,),
+              const SizedBox(height: 16,),
 
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                  onPressed: isLoading ? null :saveIncome,
-                  child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text("Geliri Kaydet"),
-              ),
-            )
-          ],
-        ),
-      )
-    ),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                    onPressed: isLoading ? null :saveIncome,
+                    child: isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text("Geliri Kaydet"),
+                ),
+              )
+            ],
+          ),
+        )
+      ),
     );
 
   }

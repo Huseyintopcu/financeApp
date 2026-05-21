@@ -7,7 +7,7 @@ import '../core/network/api_client.dart';
 
 class AuthService {
 
-  static final Dio _dio = ApiCLient.dio;
+  static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
 
   // REGISTER
