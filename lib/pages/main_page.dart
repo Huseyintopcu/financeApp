@@ -1,11 +1,16 @@
+import 'dart:ffi';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:finance_app/services/Income_service.dart';
 import 'package:finance_app/services/expense_service.dart';
+import 'package:finance_app/services/transaction_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
+import '../models/transaction_model.dart';
 
 class MainPage extends StatefulWidget
 {
@@ -90,6 +95,8 @@ class _HomeDashboardState extends State<HomeDashboard>
   double income = 0;
   double expense = 0;
   double balance = 0;
+  List<TransactionModel> transactions = [];
+  bool _loading = false;
 
   @override
   void initState()
@@ -102,18 +109,58 @@ class _HomeDashboardState extends State<HomeDashboard>
   // Monthly total expense function
   Future<void> loadData() async
   {
+    if (_loading == true) return;
+
+    _loading = true;
+
     final inc = await IncomeService().getMonthlyIncome();
     final exp = await ExpenseService().getMonthlyExpense();
+    final tran = await TransactionService().getTodayTransactions();
+
+    if (!mounted) return;
 
     setState(()
     {
+      transactions =tran;
       income = inc;
       expense = exp;
       print(expense);
       balance= income - expense;
     });
+    print(transactions);
+    _loading = false;
   }
 
+  String getCategoryText(String? category)
+  {
+    switch (category)
+    {
+      case 'FOOD': return 'Yemek';
+      case 'SNACKS': return 'Atıştırmalık';
+      case 'HEALTH': return 'Sağlık';
+      case 'BILLS': return 'Faturalar';
+      case 'SHOPPİNG': return 'Alışveriş';
+      case 'EDUCATION': return 'Eğitim';
+      case 'TRANSPORT': return 'Ulaşım';
+      case 'ENTERTAINMENT': return 'Eğlence';
+      default: return 'Diğer';
+    }
+  }
+
+  double getCategoryPercentage (String categoryName)
+  {
+    if (transactions.isEmpty || expense == 0) return 0;
+
+    double todayTotalExpense = transactions
+        .where((t) => t.type == "EXPENSE")
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    double categoryTotal = transactions
+      .where((t) => t.type == "EXPENSE" && t.category == categoryName)
+      .fold(0.0, (sum,t) => sum +t.amount);
+
+    return (categoryTotal / todayTotalExpense) * 100;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +192,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                         ),
                         SizedBox(height: 8),
                         Text(
-                          "$balance",
+                          "₺${balance.toStringAsFixed(2)}",
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold
@@ -290,41 +337,80 @@ class _HomeDashboardState extends State<HomeDashboard>
               const SizedBox(height: 20),
 
               // Spend Pie Card
-              const Text("Harcama Dağılımı"),
+              const Text("Günlük Harcama Dağılımı"),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
                     height: 200,
-                    width: 200,
+                    width: 230,
                     child: PieChart(
                       PieChartData(
                         sectionsSpace: 2,
                         centerSpaceRadius: 0,
                         sections: [
                           PieChartSectionData(
-                            value: 40,
-                            title: "40%",
-                            radius: 80,
-                            color: Colors.red,
+                            value: getCategoryPercentage("FOOD"),
+                            title: "${getCategoryPercentage("FOOD").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("FOOD") > 0,
+                            radius: 100,
+                            color: Colors.orange,
                           ),
                           PieChartSectionData(
-                            value: 30,
-                            title: "30%",
-                            radius: 80,
+                            value: getCategoryPercentage("SNACKS"),
+                            title: "${getCategoryPercentage("SNACKS").toStringAsFixed(0)}%",
+                            radius: 100,
+                            showTitle: getCategoryPercentage("SNACKS") > 0,
+                            color: Colors.brown,
+                          ),
+                          PieChartSectionData(
+                            value: getCategoryPercentage("TRANSPORT"),
+                            title: "${getCategoryPercentage("TRANSPORT").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("TRANSPORT") > 0,
+                            radius: 100,
                             color: Colors.blue,
                           ),
                           PieChartSectionData(
-                            value: 20,
-                            title: "20%",
-                            radius: 80,
+                            value: getCategoryPercentage("HEALTH"),
+                            title: "${getCategoryPercentage("HEALTH").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("HEALTH") > 0,
+                            radius: 100,
+                            color: Colors.red,
+                          ),
+                          PieChartSectionData(
+                            value: getCategoryPercentage("BILLS"),
+                            title: "${getCategoryPercentage("BILLS").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("BILLS") > 0,
+                            radius: 100,
+                            color: Colors.purple,
+                          ),
+                          PieChartSectionData(
+                            value: getCategoryPercentage("ENTERTAINMENT"),
+                            title: "${getCategoryPercentage("ENTERTAINMENT").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("ENTERTAINMENT") > 0,
+                            radius: 100,
+                            color: Colors.pink,
+                          ),
+                          PieChartSectionData(
+                            value: getCategoryPercentage("SHOPPING"),
+                            title: "${getCategoryPercentage("SHOPPING").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("SHOPPING") > 0,
+                            radius: 100,
                             color: Colors.green,
                           ),
                           PieChartSectionData(
-                            value: 10,
-                            title: "10%",
-                            radius: 80,
-                            color: Colors.orange,
+                            value: getCategoryPercentage("EDUCATION"),
+                            title: "${getCategoryPercentage("EDUCATION").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("EDUCATION") > 0,
+                            radius: 100,
+                            color: Colors.teal,
+                          ),
+                          PieChartSectionData(
+                            value: getCategoryPercentage("OTHER"),
+                            title: "${getCategoryPercentage("OTHER").toStringAsFixed(0)}%",
+                            showTitle: getCategoryPercentage("OTHER") > 0,
+                            radius: 100,
+                            color: Colors.grey,
                           ),
                         ],
                       ),
@@ -334,11 +420,17 @@ class _HomeDashboardState extends State<HomeDashboard>
                   Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const[
-                          LegendItem(color: Colors.red, text: "Yemek"),
+                        children: const
+                        [
+                          LegendItem(color: Colors.orange, text: "Yemek"),
+                          LegendItem(color: Colors.brown, text: "Atıştırmalık"),
                           LegendItem(color: Colors.blue, text: "Ulaşım"),
-                          LegendItem(color: Colors.green, text: "Eğlence"),
-                          LegendItem(color: Colors.orange, text: "Diğer"),
+                          LegendItem(color: Colors.red, text: "Sağlık"),
+                          LegendItem(color: Colors.purple, text: "Faturalar"),
+                          LegendItem(color: Colors.pink, text: "Eğlence"),
+                          LegendItem(color: Colors.green, text: "Alışveriş"),
+                          LegendItem(color: Colors.teal, text: "Eğitim"),
+                          LegendItem(color: Colors.grey, text: "Diğer"),
                         ],
                       ),
                   )
@@ -352,20 +444,65 @@ class _HomeDashboardState extends State<HomeDashboard>
 
               const SizedBox(height: 10),
 
-              ListTile(
-                title: const Text("Migros"),
-                trailing: const Text("-₺320"),
-              ),
+              transactions.isEmpty ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    "Bugün bir işlem gerçekleştirmediniz",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                ),
+              )
+                : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                itemBuilder: (context,index)
+                {
+                  final t = transactions[index];
 
-              ListTile(
-                title: const Text("Maaş"),
-                trailing: const Text("+₺15000"),
-              ),
-
-              ListTile(
-                title: const Text("Spotify"),
-                trailing: const Text("-₺59"),
-              ),
+                  return ListTile(
+                    title: Row(
+                      children:
+                      [
+                        Expanded(
+                          flex: 4,
+                          child: Text(t.title,
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            t.type == "EXPENSE" ? "${getCategoryText(t.category)}" : "Gelir",
+                            style: const TextStyle(color: Colors.orange),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            t.type == "EXPENSE" ? "-₺${t.amount}" : "+₺${t.amount}",
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                              color: t.type == "EXPENSE" ? Colors.red : Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                },
+              )
             ],
           ),
         ),

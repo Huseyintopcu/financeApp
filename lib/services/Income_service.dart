@@ -7,7 +7,7 @@ import '../models/Income_model.dart';
 
 class IncomeService
 {
-  static final Dio _dio = ApiCLient.dio;
+  static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
 
   Future<bool> createIncome(CreateIncomeRequest request) async
