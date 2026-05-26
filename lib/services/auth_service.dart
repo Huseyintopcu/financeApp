@@ -129,8 +129,13 @@ class AuthService {
   // TOKEN CHECK
   static Future<bool> isLoggedIn() async
   {
-    final token = await TokenStorage.getToken();
-    return token != null;
+    final token =  TokenStorage.getToken();
+
+    if (token == null || token.isEmpty)
+      {
+        return false;
+      }
+    return true;
   }
 
   // TOKEN GET

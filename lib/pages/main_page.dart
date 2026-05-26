@@ -1,9 +1,9 @@
-import 'dart:ffi';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
+import 'package:finance_app/pages/transactions_page.dart';
 import 'package:finance_app/services/Income_service.dart';
 import 'package:finance_app/services/expense_service.dart';
 import 'package:finance_app/services/transaction_service.dart';
@@ -35,7 +35,7 @@ class _MainPageState extends State<MainPage>
   final List<Widget> _pages =
   [
     const HomeDashboard(),
-    const Center(child: Text("İşlemler Sayfası")),
+    const TransactionsPage(),
     const Center(child: Text("Analiz Sayfası")),
     const SettingsPage(),
   ];
@@ -97,6 +97,8 @@ class _HomeDashboardState extends State<HomeDashboard>
   double balance = 0;
   List<TransactionModel> transactions = [];
   bool _loading = false;
+
+
 
   @override
   void initState()
@@ -163,7 +165,11 @@ class _HomeDashboardState extends State<HomeDashboard>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)
+  {
+
+    final bool todayHasNoExpense = transactions.where((t) => t.type == "EXPENSE").isEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Finans Dashboard"),
@@ -348,7 +354,16 @@ class _HomeDashboardState extends State<HomeDashboard>
                       PieChartData(
                         sectionsSpace: 2,
                         centerSpaceRadius: 0,
-                        sections: [
+                        sections: todayHasNoExpense ?
+                        [
+                          PieChartSectionData(
+                            value: 1,
+                            title: "",
+                            radius: 100,
+                            color: Colors.grey.shade300,
+                          ),
+                        ]
+                        : [
                           PieChartSectionData(
                             value: getCategoryPercentage("FOOD"),
                             title: "${getCategoryPercentage("FOOD").toStringAsFixed(0)}%",

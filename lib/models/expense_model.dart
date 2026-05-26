@@ -1,29 +1,37 @@
-import 'package:finance_app/models/expense_category.dart';
+import 'expense_category.dart';
 
-class CreateExpenseRequest
+class ExpenseModel
 {
+  final int id;
   final String title;
   final double amount;
   final int quantity;
   final ExpenseCategory category;
+  final DateTime transactionDate;
 
-  CreateExpenseRequest(
-      {
-        required this.title,
-        required this.amount,
-        required this.category,
-        required this.quantity,
-      }
-  );
+  ExpenseModel({
+    required this.id,
+    required this.title,
+    required this.amount,
+    required this.quantity,
+    required this.category,
+    required this.transactionDate,
+  });
 
-  Map<String, dynamic> toJson()
+  factory ExpenseModel.fromJson(Map<String,dynamic> json)
   {
-    return
-        {
-          "title" : title,
-          "amount" : amount,
-          "category" : category.name,
-          "quantity" : quantity,
-        };
+    return ExpenseModel(
+      id: json["id"],
+
+      title: json["title"],
+
+      amount: (json["amount"] as num).toDouble(),
+
+      quantity: json["quantity"],
+
+      category: ExpenseCategory.values.firstWhere((e) => e.name == json["category"],),
+
+      transactionDate: DateTime.parse(json["transactionDate"],),
+    );
   }
 }

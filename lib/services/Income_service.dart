@@ -1,15 +1,20 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
 import '../core/network/api_client.dart';
-import '../models/Income_model.dart';
+import '../models/Income_requestl.dart';
+import '../models/income_model.dart';
 
 
 class IncomeService
 {
   static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
+  var logger = Logger();
 
+
+  // Add New
   Future<bool> createIncome(CreateIncomeRequest request) async
   {
     try
@@ -22,10 +27,12 @@ class IncomeService
     }
     catch (e)
     {
+      logger.e(e);
       return false;
     }
   }
 
+  // Get Montly
   Future<double> getMonthlyIncome() async
   {
     try
@@ -39,7 +46,42 @@ class IncomeService
     }
     catch (e)
     {
+      logger.e(e);
       return 0;
+    }
+  }
+
+  // GET ALL
+  Future<List<IncomeModel>> getAllIncome() async
+  {
+    try
+    {
+      final response = await _dio.get("/income/all");
+
+      return (response.data as List)
+          .map((e) => IncomeModel.fromJson(e))
+          .toList();
+    }
+    catch (e)
+    {
+      logger.e("Gider verilerini gösterirken hata: $e");
+      return [];
+    }
+  }
+
+  // DELETE
+  Future<bool> deleteIncome(int id) async
+  {
+    try
+    {
+      final response = await _dio.delete("/income/$id");
+
+      return response.statusCode == 200;
+    }
+    catch (e)
+    {
+      logger.e("Gider silerken hata: $e");
+      return false;
     }
   }
 
