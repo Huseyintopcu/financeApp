@@ -305,8 +305,9 @@ class _AnalysisPageState extends State<AnalysisPage>
 
                             return PieChartSectionData(
                               value: e.total,
-                              title: "${e.category.trName}\n%${percentage.toStringAsFixed(1)}",
+                              title: "%${percentage.toStringAsFixed(1)}",
                               radius: 85,
+                              titlePositionPercentageOffset: 0.5,
                               color: Colors.primaries[index % Colors.primaries.length],
                               titleStyle: const TextStyle(
                                 color: Colors.white,
@@ -316,6 +317,44 @@ class _AnalysisPageState extends State<AnalysisPage>
                             );
                           }).toList(),
                         ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Shows which color belongs to which category
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: data.asMap().entries.map((entry)
+                        {
+                          final index = entry.key;
+                          final e = entry.value;
+                          final color = Colors.primaries[index % Colors.primaries.length];
+
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                                
+                              Text(
+                                e.category.trName,
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                              ),
+                             ],
+                          );
+                        },).toList(),
                       ),
                     ),
 
