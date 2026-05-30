@@ -2,6 +2,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
+import 'package:finance_app/pages/analysis_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:finance_app/pages/transactions_page.dart';
 import 'package:finance_app/services/Income_service.dart';
@@ -36,7 +37,7 @@ class _MainPageState extends State<MainPage>
   [
     const HomeDashboard(),
     const TransactionsPage(),
-    const Center(child: Text("Analiz Sayfası")),
+    const AnalysisPage(),
     const SettingsPage(),
   ];
 
@@ -91,10 +92,11 @@ class HomeDashboard extends StatefulWidget
 
 class _HomeDashboardState extends State<HomeDashboard>
 {
-  double savingTarget=10;
-  double income = 0;
-  double expense = 0;
-  double balance = 0;
+  double savingTarget =0.0;
+  double income = 0.0;
+  double expense = 0.0;
+  double balance = 0.0;
+  double todayTotalExpense = 0.0;
   List<TransactionModel> transactions = [];
   bool _loading = false;
 
@@ -121,15 +123,38 @@ class _HomeDashboardState extends State<HomeDashboard>
 
     if (!mounted) return;
 
+    final computedTodayExpense = tran
+        .where((t) => t.type == "EXPENSE")
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    double computedSavingTarget = 0.0;
+
+    if (inc > 0)
+      {
+        if (inc <=25000)
+          {
+            computedSavingTarget = inc * 0.05;
+          }
+        else if (inc < 60000)
+          {
+            computedSavingTarget = inc * 0.15;
+          }
+        else
+          {
+            computedSavingTarget = inc * 0.25;
+          }
+
+      }
+
     setState(()
     {
       transactions =tran;
       income = inc;
       expense = exp;
-      print(expense);
       balance= income - expense;
+      todayTotalExpense = computedTodayExpense;
+      savingTarget = computedSavingTarget;
     });
-    print(transactions);
     _loading = false;
   }
 
@@ -141,7 +166,7 @@ class _HomeDashboardState extends State<HomeDashboard>
       case 'SNACKS': return 'Atıştırmalık';
       case 'HEALTH': return 'Sağlık';
       case 'BILLS': return 'Faturalar';
-      case 'SHOPPİNG': return 'Alışveriş';
+      case 'SHOPPING': return 'Alışveriş';
       case 'EDUCATION': return 'Eğitim';
       case 'TRANSPORT': return 'Ulaşım';
       case 'ENTERTAINMENT': return 'Eğlence';
@@ -152,10 +177,6 @@ class _HomeDashboardState extends State<HomeDashboard>
   double getCategoryPercentage (String categoryName)
   {
     if (transactions.isEmpty || expense == 0) return 0;
-
-    double todayTotalExpense = transactions
-        .where((t) => t.type == "EXPENSE")
-        .fold(0.0, (sum, t) => sum + t.amount);
 
     double categoryTotal = transactions
       .where((t) => t.type == "EXPENSE" && t.category == categoryName)
@@ -249,33 +270,32 @@ class _HomeDashboardState extends State<HomeDashboard>
 
                   // Savings Target Card
                   Expanded(
-                      child:Card(
-                        child:SizedBox(
-                          height: 105,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Tassaruf Hedefi",
-                                  style: TextStyle(fontSize: 16),
+                    child:Card(
+                      child:SizedBox(
+                        height: 103,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Tassaruf Hedefi",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(height: 8),
+                              AutoSizeText(
+                                "₺$savingTarget",
+                                maxLines: 1,
+                                minFontSize: 8,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold
                                 ),
-                                SizedBox(height: 8),
-                                AutoSizeText(
-                                  "₺$savingTarget",
-                                  maxLines: 1,
-                                  minFontSize: 8,
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                )
-                              ],
-                            ),
+                              )
+                            ],
                           ),
-                        )
+                        ),
                       )
-
+                    )
                   )
                 ]
               ),
@@ -284,11 +304,13 @@ class _HomeDashboardState extends State<HomeDashboard>
               const SizedBox(height: 20),
 
               // Daily spend limit
-              const Text("Günlük Harcama Limiti"),
+              const Text("Günlük Harcama Limiti", style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
+
+              Text("₺$todayTotalExpense/₺300 ", style: TextStyle(fontSize: 18),),
 
               const SizedBox(height: 8),
 
-              LinearProgressIndicator(value: 0.3),
+              LinearProgressIndicator(value: (todayTotalExpense/300).clamp(0.0, 1.0),minHeight: 16,),
 
               const SizedBox(height: 20),
 
@@ -343,7 +365,7 @@ class _HomeDashboardState extends State<HomeDashboard>
               const SizedBox(height: 20),
 
               // Spend Pie Card
-              const Text("Günlük Harcama Dağılımı"),
+              const Text("Günlük Harcama Dağılımı", style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -455,7 +477,7 @@ class _HomeDashboardState extends State<HomeDashboard>
               const SizedBox(height: 20),
 
               // Last Transactions
-              const Text("Son İşlemler"),
+              const Text("Son İşlemler",style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
 
               const SizedBox(height: 10),
 

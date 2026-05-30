@@ -5,6 +5,7 @@ import 'pages/login_page.dart';
 import 'pages/main_page.dart';
 import 'package:finance_app/core/network/api_client.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async
 {
@@ -28,6 +29,7 @@ class FinanceApp extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Finance App',
       home: isLoggedIn ? const MainPage() : const LoginPage(),

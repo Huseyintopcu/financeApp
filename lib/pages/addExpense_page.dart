@@ -67,7 +67,7 @@ class _AddExpense_pageState extends State<AddExpensePage>
               backgroundColor: Colors.green,
             )
           );
-          Navigator.pop(context);
+          Navigator.pop(context,true);
         }
       else
         {

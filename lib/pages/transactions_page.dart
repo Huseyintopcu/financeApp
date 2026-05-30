@@ -6,12 +6,14 @@ import 'package:finance_app/services/Income_service.dart';
 import 'package:finance_app/services/expense_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
 class TransactionsPage extends StatefulWidget
 {
   const TransactionsPage({super.key});
 
+  @override
   State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
@@ -116,14 +118,36 @@ class _TransactionsPageState extends State<TransactionsPage>
         child: ListTile(
           leading: const Icon(Icons.arrow_upward, color: Colors.green),
 
-          title: Text(income.title),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  income.title,
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  DateFormat('dd/MM/yyyy').format(income.transactionDate),
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  "₺${income.amount}",
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(color: Colors.green,
 
-          trailing: Text(
-            "₺${income.amount}",
-            style: const TextStyle(color: Colors.green,
-            fontWeight: FontWeight.bold,
-            ),
-          ),
+                  fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          )
         ),
       ),
     );
@@ -165,7 +189,26 @@ class _TransactionsPageState extends State<TransactionsPage>
         child: ListTile(
           leading: Icon(expense.category.icon, color: expense.category.color,),
 
-          title: Text(expense.title),
+          title: Row(
+            children: [
+              Expanded(
+                 child:Text(
+                   expense.title,
+                   style: TextStyle(fontWeight: FontWeight.w500),
+                   maxLines: 1,
+                   overflow: TextOverflow.ellipsis,
+                 )
+              ),
+              Expanded(
+                child: Text(
+                  DateFormat('dd/MM/yyyy').format(expense.transactionDate),
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
 
           subtitle: Text(expense.category.trName),
 

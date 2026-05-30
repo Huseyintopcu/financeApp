@@ -1,4 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:finance_app/main.dart';
+import 'package:finance_app/pages/login_page.dart';
+import 'package:flutter/material.dart';
 
 import '../../security/token_storage.dart';
 
@@ -19,14 +22,14 @@ class ApiCLient
       InterceptorsWrapper(
         onRequest: (options, handler)
         {
-          final token =  TokenStorage.getToken();
+          final accessToken =  TokenStorage.getAccessToken();
 
           print("🔥 REQUEST START");
-          print("TOKEN: $token");
+          print("TOKEN: $accessToken");
 
-          if (token != null)
+          if (accessToken != null)
           {
-            options.headers["Authorization"] = "Bearer $token";
+            options.headers["Authorization"] = "Bearer $accessToken";
           }
 
           options.headers["Content-Type"] = "application/json";
@@ -53,8 +56,53 @@ class ApiCLient
 
           if (error.response?.statusCode == 401)
           {
-            await TokenStorage.deleteToken();
-            print("🚨 Token expired → logout yapılmalı");
+            final refreshToken  = TokenStorage.getRefreshToken();
+
+            if (refreshToken !=null && refreshToken.isNotEmpty)
+            {
+              try
+              {
+                print("🔄 Access Token bitti. Arka planda yenileniyor...");
+
+                final refresDio = Dio(
+                  BaseOptions(
+                    baseUrl: "http://10.0.2.2:8080",
+                    connectTimeout: const Duration(seconds: 10),
+                    receiveTimeout: const Duration(seconds: 10),
+                  ),
+                );
+
+                final response = await refresDio.post(
+                    "/auth/refresh",
+                    data: {"refreshToken":refreshToken},
+                );
+
+                if (response.statusCode == 200)
+                {
+                  String newAccessToken = response.data["accessToken"];
+                  String newRefreshToken = response.data["refreshToken"];
+
+                  await TokenStorage.saveAccessToken(newAccessToken);
+                  await TokenStorage.saveRefreshToken(newRefreshToken);
+
+                  print("✅ Tokenlar başarıyla tazelendi! Yarım kalan istek tekrar gönderiliyor...");
+
+                  error.requestOptions.headers["Authorization"] = "Bearer $newAccessToken";
+
+                  final clonedRequest = await dio.fetch(error.requestOptions);
+
+                  return handler.resolve(clonedRequest);
+                }
+              }
+              catch (e)
+              {
+                print("🚨 Arka planda token yenileme başarısız oldu (Refresh token da eskimiş): $e");
+              }
+            }
+            await TokenStorage.deleteTokens();
+            print("🚨 Token expired → Otomatik logout yapılıyor...");
+
+            navigatorKey.currentState?.pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const LoginPage()), (route) => false);
           }
 
           return handler.next(error);

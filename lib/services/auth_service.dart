@@ -10,6 +10,7 @@ class AuthService {
   static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
 
+
   // REGISTER
   static Future<RegisterResponse> register(String email, String password,) async
   {
@@ -44,9 +45,10 @@ class AuthService {
 
       final data = response.data;
 
-      if (data["success"] == true && data["token"] != null)
+      if (data["success"] == true && data["accessToken"] != null)
       {
-        await TokenStorage.saveToken(data["token"]);
+        await TokenStorage.saveAccessToken(data["accessToken"]);
+        await TokenStorage.saveRefreshToken(data["refreshToken"]);
         return true;
       }
       return false;
@@ -123,13 +125,13 @@ class AuthService {
   // LOGOUT
   static Future<void> logout() async
   {
-    await TokenStorage.deleteToken();
+    await TokenStorage.deleteTokens();
   }
 
   // TOKEN CHECK
   static Future<bool> isLoggedIn() async
   {
-    final token =  TokenStorage.getToken();
+    final token =  TokenStorage.getAccessToken();
 
     if (token == null || token.isEmpty)
       {
@@ -139,8 +141,8 @@ class AuthService {
   }
 
   // TOKEN GET
-  static Future<String?> getToken() async
+  static String? getToken()
   {
-    return await TokenStorage.getToken();
+    return  TokenStorage.getAccessToken();
   }
 }
