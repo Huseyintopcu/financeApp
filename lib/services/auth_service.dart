@@ -1,14 +1,17 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:finance_app/models/register_response.dart';
 import 'package:finance_app/security/token_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
 import '../core/network/api_client.dart';
 
 class AuthService {
 
   static Dio get _dio => ApiCLient.dio;
   static const FlutterSecureStorage storage = FlutterSecureStorage();
+  var logger = Logger();
 
 
   // REGISTER
@@ -55,6 +58,32 @@ class AuthService {
     }
     catch (e)
     {
+      return false;
+    }
+  }
+
+  // save Fcm Token
+  Future<bool> updateFcmToken(String email, String token) async
+  {
+    try
+    {
+      final response = await _dio.post("/auth/update-fcm-token",
+        data:
+        {
+          "email": email,
+          "token" : token
+        },
+      );
+      if (response.statusCode == 200) {
+        print("🚀 FCM Token backend veritabanına başarıyla kaydedildi.");
+        return true;
+      }
+
+      return false;
+    }
+    catch (e)
+    {
+      logger.e("❌ Token backend'e gönderilirken hata oluştu: $e");
       return false;
     }
   }

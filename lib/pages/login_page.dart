@@ -3,6 +3,7 @@ import 'package:finance_app/pages/signUp_page.dart';
 import 'package:finance_app/pages/main_page.dart';
 import 'package:finance_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class LoginPage extends StatefulWidget
@@ -39,7 +40,12 @@ class _LoginPageState extends State<LoginPage>
   {
     bool success = await AuthService.login(emailInput.text, passwordInput.text);
 
-    if (success) {
+    if (success)
+    {
+      await const FlutterSecureStorage().write(key: "email", value: emailInput.text.trim());
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainPage()),

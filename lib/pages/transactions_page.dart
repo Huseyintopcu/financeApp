@@ -1,8 +1,12 @@
 
+import 'dart:ffi';
+
+import 'package:finance_app/models/bill_model.dart';
 import 'package:finance_app/models/expense_category_extension.dart';
 import 'package:finance_app/models/expense_model.dart';
 import 'package:finance_app/models/income_model.dart';
 import 'package:finance_app/services/Income_service.dart';
+import 'package:finance_app/services/bill_service.dart';
 import 'package:finance_app/services/expense_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +25,7 @@ class _TransactionsPageState extends State<TransactionsPage>
 {
   List<ExpenseModel> expenses = [];
   List<IncomeModel> incomes = [];
+  List<BillModel> bills = [];
   var logger = Logger();
 
   @override
@@ -34,12 +39,14 @@ class _TransactionsPageState extends State<TransactionsPage>
   {
     final exp = await ExpenseService().getAllExpense();
     final inc = await IncomeService().getAllIncome();
+    final bill = await BillService().getListThisMonthBills();
+
 
     setState(() 
     {
       incomes = inc;
       expenses = exp;
-      print("GELİRlER: $incomes.length");
+      bills = bill;
     });
   }
 
@@ -63,6 +70,20 @@ class _TransactionsPageState extends State<TransactionsPage>
               ...incomes.map((income)
               {
                 return incomeCard(income);
+              }),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                "Ödenecekler",
+                style: TextStyle(fontSize: 22, color: Colors.black,fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height:16),
+
+              ...bills.map((bill)
+              {
+                return billCard(bill);
               }),
 
               const SizedBox(height: 30),
@@ -148,6 +169,87 @@ class _TransactionsPageState extends State<TransactionsPage>
               ),
             ],
           )
+        ),
+      ),
+    );
+  }
+
+  Widget billCard(BillModel bill)
+  {
+    return Dismissible(
+      key: Key(bill.id.toString()),
+      direction: DismissDirection.endToStart,
+
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 10),
+        color: Colors.red,
+        child: const Icon(Icons.delete,color: Colors.white,),
+      ),
+
+      onDismissed: (_) async
+      {
+        setState(()
+        {
+          incomes.removeWhere((element) => element.id == bill.id);
+        });
+        try
+        {
+          await IncomeService().deleteIncome(bill.id);
+        }
+        catch (e)
+        {
+          logger.e("Silme hatası: $e");
+          loadData();
+        }
+      },
+      child: Card(
+        child: ListTile(
+            leading: const Icon(Icons.receipt_long, color: Colors.green),
+
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    bill.title,
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                      "Son Ödeme Tarihi",
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      Text(
+                        DateFormat('dd/MM/yyyy').format(bill.finalPaymentDate),
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    "₺${bill.amount}",
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(color: Colors.red,
+
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            )
         ),
       ),
     );

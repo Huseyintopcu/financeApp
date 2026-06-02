@@ -1,15 +1,19 @@
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:finance_app/pages/addBill_page.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
 import 'package:finance_app/pages/analysis_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:finance_app/pages/transactions_page.dart';
 import 'package:finance_app/services/Income_service.dart';
+import 'package:finance_app/services/bill_service.dart';
 import 'package:finance_app/services/expense_service.dart';
+import 'package:finance_app/services/notification_service.dart';
 import 'package:finance_app/services/transaction_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import '../models/transaction_model.dart';
 
@@ -96,10 +100,13 @@ class _HomeDashboardState extends State<HomeDashboard>
   double income = 0.0;
   double expense = 0.0;
   double balance = 0.0;
+  double dailyAllowance = 0.0;
   double todayTotalExpense = 0.0;
   List<TransactionModel> transactions = [];
+  List<dynamic> upcomingBills = [];
   bool _loading = false;
 
+  var logger = Logger();
 
 
   @override
@@ -107,6 +114,8 @@ class _HomeDashboardState extends State<HomeDashboard>
   {
     super.initState();
     loadData();
+
+    NotificationService().initNotifications();
   }
 
 
@@ -115,47 +124,81 @@ class _HomeDashboardState extends State<HomeDashboard>
   {
     if (_loading == true) return;
 
-    _loading = true;
+    setState(()
+    {
+      _loading = true;
+    });
 
-    final inc = await IncomeService().getMonthlyIncome();
-    final exp = await ExpenseService().getMonthlyExpense();
-    final tran = await TransactionService().getTodayTransactions();
+    try
+    {
+      final inc = await IncomeService().getMonthlyIncome();
+      final exp = await ExpenseService().getMonthlyExpense();
+      final tran = await TransactionService().getTodayTransactions();
+      final pay = await BillService().getThisMonthTotalBillAmount();
+      final criticalBills = await BillService().getUpcomingCriticalBills();
 
-    if (!mounted) return;
+      DateTime now = DateTime.now();
+      int totalDaysInMonth = DateTime(now.year, now.month + 1, 0).day;
 
-    final computedTodayExpense = tran
-        .where((t) => t.type == "EXPENSE")
-        .fold(0.0, (sum, t) => sum + t.amount);
+      if (!mounted) return;
 
-    double computedSavingTarget = 0.0;
+      final computedTodayExpense = tran
+          .where((t) => t.type == "EXPENSE")
+          .fold(0.0, (sum, t) => sum + t.amount);
 
-    if (inc > 0)
+      double computedSavingTarget = 0.0;
+
+      if (inc > 0)
       {
         if (inc <=25000)
-          {
-            computedSavingTarget = inc * 0.05;
-          }
+        {
+          computedSavingTarget = inc * 0.05;
+        }
         else if (inc < 60000)
-          {
-            computedSavingTarget = inc * 0.15;
-          }
+        {
+          computedSavingTarget = inc * 0.15;
+        }
         else
-          {
-            computedSavingTarget = inc * 0.25;
-          }
+        {
+          computedSavingTarget = inc * 0.25;
+        }
 
       }
 
-    setState(()
+      double safePool = inc - computedSavingTarget;
+
+
+
+      setState(()
+      {
+        transactions =tran;
+        income = inc;
+        expense = exp;
+        balance= income - expense;
+        todayTotalExpense = computedTodayExpense;
+        savingTarget = computedSavingTarget;
+        upcomingBills = criticalBills;
+
+        if (safePool > 0)
+        {
+          dailyAllowance = (safePool - pay) / totalDaysInMonth;
+        }
+      });
+    }
+    catch (e)
     {
-      transactions =tran;
-      income = inc;
-      expense = exp;
-      balance= income - expense;
-      todayTotalExpense = computedTodayExpense;
-      savingTarget = computedSavingTarget;
-    });
-    _loading = false;
+      logger.e("Veri yükleme hatası: $e");
+    }
+    finally
+    {
+      if(mounted)
+        {
+          setState(()
+          {
+            _loading = false;
+          });
+        }
+    }
   }
 
   String getCategoryText(String? category)
@@ -306,63 +349,159 @@ class _HomeDashboardState extends State<HomeDashboard>
               // Daily spend limit
               const Text("Günlük Harcama Limiti", style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
 
-              Text("₺$todayTotalExpense/₺300 ", style: TextStyle(fontSize: 18),),
+              Text("₺${todayTotalExpense.toStringAsFixed(2)}/₺${dailyAllowance.toStringAsFixed(2)} ", style: TextStyle(fontSize: 18),),
 
               const SizedBox(height: 8),
 
-              LinearProgressIndicator(value: (todayTotalExpense/300).clamp(0.0, 1.0),minHeight: 16,),
+              LinearProgressIndicator(value: (todayTotalExpense/dailyAllowance).clamp(0.0, 1.0),minHeight: 16,),
 
               const SizedBox(height: 20),
 
               // Fast Transactions
-              const Text("Hızlı İşlemler"),
+              const Text("Hızlı İşlemler", style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
 
               const SizedBox(height: 10),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Add income button
+                      SizedBox(
+                        width: 170,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () async
+                          {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const AddIncomePage()),
+                            );
 
-                  ElevatedButton(
-                    onPressed: () async
-                    {
-                      final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AddIncomePage()),
-                      );
+                            if (result == true)
+                            {
+                              loadData();
+                            }
+                          },
+                          child: const Text("💵 Gelir Ekle"),
+                        ),
+                      ),
 
-                      if (result == true)
-                        {
-                          loadData();
-                        }
-                    },
-                    child: const Text("+ Gelir"),
+                      // Add bill button
+                      SizedBox(
+                        width: 170,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async
+                          {
+                            final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddBillPage()));
+
+                            if (result == true)
+                            {
+                              loadData();
+                            }
+                          },
+                          icon: const Icon(Icons.receipt_long, size: 20),
+                          label: const Text("Ödenecek Ekle",maxLines: 1,),
+                        ),
+                      )
+                    ],
                   ),
 
-                  ElevatedButton(
-                    onPressed: () async
-                    {
-                      final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context)=> const AddExpensePage()),
-                      );
+                  SizedBox(height: 8),
 
-                      if (result == true)
-                        {
-                          loadData();
-                        }
-                    },
-                    child: const Text("+ Gider"),
-                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Add expense button
+                      SizedBox(
+                        width: 170,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () async
+                          {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context)=> const AddExpensePage()),
+                            );
 
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("📷 Fiş"),
-                  ),
+                            if (result == true)
+                            {
+                              loadData();
+                            }
+                          },
+                          child: const Text("📉 Gider Ekle"),
+                        ),
+                      ),
+
+                      // Add expense withe camere button
+                      SizedBox(
+                        width: 170,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          child: const Text("📷 Fiş"),
+                        ),
+                      )
+                    ],
+                  )
                 ],
               ),
 
               const SizedBox(height: 20),
+
+              if (upcomingBills.isNotEmpty) ...[
+                const Text(
+                  "🚨 Yaklaşan Ödemeler (Son 3 Gün)",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                ),
+                const SizedBox(height: 8),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: upcomingBills.length,
+                  itemBuilder: (context, index) {
+                    final bill = upcomingBills[index];
+
+                    DateTime pDate = DateTime.parse(bill['finalPaymentDate']);
+
+                    return Card(
+                      color: Colors.red.shade50,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      child: ListTile(
+                        leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                        title: Text(bill['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text("Son Ödeme: ${pDate.day}.${pDate.month}.${pDate.year}"),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "₺${bill['amount']}",
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              onPressed: () async
+                              {
+                                bool success = await BillService().markAsPaid(bill['id']);
+                                if (success)
+                                {
+                                  loadData();
+                                }
+                              },
+                              child: const Text("ÖDE", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+
+              const SizedBox(height: 30),
 
               // Spend Pie Card
               const Text("Günlük Harcama Dağılımı", style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),

@@ -1,24 +1,24 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:finance_app/models/Income_request.dart';
-import 'package:flutter/material.dart';
+import 'dart:math';
+
+import 'package:finance_app/models/bill_request.dart';
+import 'package:finance_app/services/bill_service.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
-import '../services/Income_service.dart';
-
-class AddIncomePage extends StatefulWidget
+class AddBillPage extends StatefulWidget
 {
-  const AddIncomePage({super.key});
+  const AddBillPage({super.key});
 
   @override
-  State<AddIncomePage> createState() => _AddIncomePageState();
+  State<AddBillPage> createState() => _AddBillPageState();
 }
 
-class _AddIncomePageState extends State<AddIncomePage>
+class _AddBillPageState extends  State<AddBillPage>
 {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
 
   DateTime selectedDate = DateTime.now();
 
@@ -27,33 +27,31 @@ class _AddIncomePageState extends State<AddIncomePage>
   @override
   void dispose()
   {
-    _titleController.dispose();
-    _amountController.dispose();
+    titleController.dispose();
+    amountController.dispose();
     super.dispose();
   }
 
-  // Select Date Function
   Future<void> pickDate() async
   {
     final picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate,
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2100),
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100)
     );
 
     if (picked != null)
+    {
+      setState(()
       {
-        setState(()
-          {
-            selectedDate = picked;
-          }
-        );
-      }
+        selectedDate = picked;
+      });
+    }
   }
 
-  // Save Income Function
-  Future<void> saveIncome() async
+  // Save a new bill function
+  Future<void> saveBill() async
   {
     if (!_formKey.currentState!.validate()) return;
 
@@ -64,34 +62,33 @@ class _AddIncomePageState extends State<AddIncomePage>
 
     try
     {
-      final request = CreateIncomeRequest(
-          title: _titleController.text,
-          amount: double.parse(_amountController.text),
-          transactionDate: selectedDate,
+      final request = CreateBillRequest(
+        title: titleController.text,
+        amount: double.parse(amountController.text),
+        finalPaymentDate: selectedDate
       );
 
-
-      final success = await IncomeService().createIncome(request);
+      final success = await BillService().createPayment(request);
 
       if (!mounted) return;
-
+      
       if (success)
       {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Gelir başarıyla eklendi"),
+            content: Text("Başarıyla eklendi"),
             backgroundColor: Colors.green,
           ),
         );
 
-        Navigator.pop(context, true);
+        Navigator.pop(context,true);
       }
       else
       {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Gelir eklenemedi"),
-            backgroundColor: Colors.red,
+           content: Text("Eklenemedi"),
+           backgroundColor: Colors.red,
           ),
         );
       }
@@ -107,21 +104,24 @@ class _AddIncomePageState extends State<AddIncomePage>
         ),
       );
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      isLoading = false;
-    });
+    finally
+    {
+      if (!mounted)
+      {
+        setState(()
+        {
+          isLoading = false;
+        });
+      }
+    }
   }
-
 
 
   @override
   Widget build(BuildContext context)
   {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gelir Ekle"),),
+      appBar: AppBar(title: const Text("Ödenecek Ekle")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -129,46 +129,46 @@ class _AddIncomePageState extends State<AddIncomePage>
           child: Column(
             children: [
               TextFormField(
-                controller: _titleController,
+                controller: titleController,
                 decoration: const InputDecoration(
-                  labelText: "Gelir Başlığı"
+                  labelText: "Ödenecek Adı"
                 ),
                 validator: (value)
                 {
                   if (value == null || value.trim().isEmpty)
                   {
-                    return "Başlık boş olamaz";
+                    return "Ödenecek adı boş olamaz";
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 16,),
+              const SizedBox(height: 16),
 
               TextFormField(
-                controller: _amountController,
+                controller: amountController,
                 decoration: const InputDecoration(
                   labelText: "Miktar",
                 ),
                 validator: (value)
                 {
                   if (value == null || value.isEmpty)
-                    {
-                      return "Miktar giriniz";
-                    }
+                  {
+                    return "Miktar giriniz";
+                  }
                   if (double.tryParse(value) == null)
-                    {
-                      return "Geçerli sayı giriniz";
-                    }
+                  {
+                    return "Geçerli sayı giriniz";
+                  }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 16,),
+              const SizedBox(height: 16),
 
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
+                padding: const EdgeInsetsGeometry.symmetric(
                   horizontal: 12,
                   vertical: 14,
                 ),
@@ -179,31 +179,29 @@ class _AddIncomePageState extends State<AddIncomePage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Tarih: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}",),
-                    TextButton(
-                      onPressed: pickDate,
-                      child: const Text("Seç"),),
+                    Text("Son Ödeme Tarihi: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}"),
+                    TextButton(onPressed: pickDate, child: const Text("Seç")),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16,),
+              const SizedBox(height: 16),
 
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                    onPressed: isLoading ? null :saveIncome,
-                    child: isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text("Geliri Kaydet"),
+                  onPressed: isLoading ? null : saveBill,
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Ödeneceği Kaydet"),
                 ),
               )
             ],
-          ),
-        )
+          )
+        ),
       ),
     );
-
   }
+
 }

@@ -1,6 +1,6 @@
 import 'package:finance_app/models/expense_category.dart';
 import 'package:finance_app/models/expense_category_extension.dart';
-import 'package:finance_app/models/expense_requestl.dart';
+import 'package:finance_app/models/expense_request.dart';
 import 'package:finance_app/services/expense_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
