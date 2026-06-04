@@ -1,5 +1,6 @@
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
 import 'package:finance_app/pages/addBill_page.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
@@ -7,14 +8,19 @@ import 'package:finance_app/pages/analysis_page.dart';
 import 'package:finance_app/pages/settings_page.dart';
 import 'package:finance_app/pages/transactions_page.dart';
 import 'package:finance_app/services/Income_service.dart';
+import 'package:finance_app/services/bill_ai_service.dart';
 import 'package:finance_app/services/bill_service.dart';
 import 'package:finance_app/services/expense_service.dart';
 import 'package:finance_app/services/notification_service.dart';
 import 'package:finance_app/services/transaction_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 
+import '../core/network/api_client.dart';
+import '../models/expense_model.dart';
+import '../models/expense_request.dart';
 import '../models/transaction_model.dart';
 
 class MainPage extends StatefulWidget
@@ -26,7 +32,6 @@ class MainPage extends StatefulWidget
 }
 class _MainPageState extends State<MainPage>
 {
-
   int _selectedIndex = 0;
 
   void _onItemTapped(int index)
@@ -96,6 +101,8 @@ class HomeDashboard extends StatefulWidget
 
 class _HomeDashboardState extends State<HomeDashboard>
 {
+  static Dio get _dio => ApiCLient.dio;
+
   double savingTarget =0.0;
   double income = 0.0;
   double expense = 0.0;
@@ -199,6 +206,46 @@ class _HomeDashboardState extends State<HomeDashboard>
           });
         }
     }
+  }
+
+
+  void _showAiSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.purple),
+              title: const Text('Kamera ile Fotoğraf Çek'),
+              onTap: ()
+              {
+                Navigator.pop(context);
+                BillAiService().uploadAndProcessBill(
+                  source: ImageSource.camera,
+                  context: context,
+                  onSuccess: loadData,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.blue),
+              title: const Text('Galeriden Fiş Seç'),
+              onTap: ()
+              {
+                Navigator.pop(context);
+                BillAiService().uploadAndProcessBill(
+                  source: ImageSource.gallery,
+                  context: context,
+                  onSuccess: loadData,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   String getCategoryText(String? category)
@@ -441,7 +488,10 @@ class _HomeDashboardState extends State<HomeDashboard>
                         width: 170,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: ()
+                          {
+                            _showAiSourceOptions();
+                          },
                           child: const Text("📷 Fiş"),
                         ),
                       )
