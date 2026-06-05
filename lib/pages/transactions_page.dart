@@ -26,6 +26,7 @@ class _TransactionsPageState extends State<TransactionsPage>
   List<ExpenseModel> expenses = [];
   List<IncomeModel> incomes = [];
   List<BillModel> bills = [];
+  bool _loading = false;
   var logger = Logger();
 
   @override
@@ -37,22 +38,53 @@ class _TransactionsPageState extends State<TransactionsPage>
 
   Future<void> loadData() async
   {
-    final exp = await ExpenseService().getAllExpense();
-    final inc = await IncomeService().getAllIncome();
-    final bill = await BillService().getListThisMonthBills();
+    if (_loading == true) return;
 
-
-    setState(() 
+    setState(()
     {
-      incomes = inc;
-      expenses = exp;
-      bills = bill;
+      _loading = true;
     });
+
+    try
+    {
+      final exp = await ExpenseService().getAllExpense();
+      final inc = await IncomeService().getAllIncome();
+      final bill = await BillService().getListThisMonthBills();
+
+
+      setState(()
+      {
+        incomes = inc;
+        expenses = exp;
+        bills = bill;
+      });
+    }
+    catch (e)
+    {
+      logger.e("Veri yükleme hatası: $e");
+    }
+    finally
+    {
+      if(mounted)
+      {
+        setState(()
+        {
+          _loading = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context)
   {
+    if (_loading)
+    {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(

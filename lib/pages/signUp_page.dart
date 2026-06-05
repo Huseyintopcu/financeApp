@@ -228,7 +228,13 @@ class _SignUpPageState extends State<SignUpPage>
                       }
 
                   },
-                  child: Text( countdown > 0 ? "Tekrar Gönder ($countdown)":"Kod Gönder")
+                  child: Text( countdown > 0 ? "Tekrar Gönder ($countdown)":"Kod Gönder"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.lightBlueAccent,
+                    disabledForegroundColor: Colors.grey,
+                ),
               ),
 
               const SizedBox(height: 15),
@@ -310,7 +316,6 @@ class _SignUpPageState extends State<SignUpPage>
                           emailController.text,
                           otpController.text,
                         );
-                        print("deneme ${verified.success}");
 
                         if (verified.success)
                         {
@@ -338,6 +343,12 @@ class _SignUpPageState extends State<SignUpPage>
                         }
                       }:null,
                     child: const Text("Kodu Doğrula"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.lightBlueAccent,
+                      disabledForegroundColor: Colors.grey,
+                    ),
                   ),
 
 
@@ -351,7 +362,13 @@ class _SignUpPageState extends State<SignUpPage>
                         }
                       }
                       :null,
-                      child: const Text("Hesap Oluştur")
+                      child: const Text("Hesap Oluştur"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlue,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.lightBlueAccent,
+                        disabledForegroundColor: Colors.grey,
+                    ),
                   ),
                 ],
               ),

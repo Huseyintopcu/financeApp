@@ -24,12 +24,12 @@ class BillAiService
     throw Exception("AI failed after retries");
   }
 
-  Future<void> uploadAndProcessBill({required ImageSource source, required BuildContext context, required VoidCallback onSuccess,}) async
+  Future<bool> uploadAndProcessBill({required ImageSource source}) async
   {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: source, imageQuality: 80);
 
-    if (image == null) return;
+    if (image == null) return false;
 
     try
     {
@@ -43,39 +43,21 @@ class BillAiService
         return _dio.post("/api/ai/process", data: formData);
       });
 
-      if (response.statusCode == 200 && response.data != null && response.data is Map<String, dynamic>)
+      final data = response.data;
+
+      final List items = (data["items"] as List);
+
+      for (final item in items)
       {
-        final data = response.data as Map<String, dynamic>;
-        List<ApiModel> expenses =  (data["items"] as List).map((e) => ApiModel.fromJson(e)).toList();
-
-        for (final item in expenses)
-        {
-          CreateExpenseRequest requestPayload = CreateExpenseRequest(
-            title: item.title,
-            amount: item.amount,
-            quantity: item.quantity,
-            category: item.category,
-          );
-
-          await _dio.post("/expense/add", data: requestPayload.toJson());
-        }
-
-        if (context.mounted) {
-          onSuccess();
-
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Fiş yapay zeka ile başarıyla kaydedildi! 🚀"),
-              backgroundColor: Colors.green),);
-        }
+        await ApiCLient.dio.post("/expense/add", data: item);
       }
+
+      return true;
     }
     catch (e)
     {
       print("Yapay zeka akış hatası: $e");
-      if (context.mounted)
-        {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata oluştu: ${e.toString()}"),backgroundColor: Colors.red,),);
-        }
+      return false;
     }
   }
 }

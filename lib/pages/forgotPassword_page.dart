@@ -174,7 +174,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   Widget  build(BuildContext context)
   {
     return Scaffold(
-        appBar: AppBar(title: const Text("Kayıt Ol")),
+        appBar: AppBar(title: const Text("Şifreyi GÜncelle")),
         body:  Padding(
             padding: const EdgeInsets.all(16.0),
             child:SingleChildScrollView(
@@ -215,18 +215,39 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                         {
                           final success = await AuthService.sendOtp(emailController.text);
 
-                          startCountdown();
-                          isSend = true;
+                          if (success)
+                          {
+                            startCountdown();
+                            setState(()
+                            {
+                              isSend = true;
+                            });
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Doğrulama Kodu Maile Gönderildi"),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Doğrulama Kodu Maile Gönderildi"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                          else
+                          {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Doğrulama Kodu Maile Gönderilemedi"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                       },
-                      child: Text( countdown > 0 ? "Tekrar Gönder ($countdown)":"Kod Gönder")
+                      child: Text( countdown > 0 ? "Tekrar Gönder ($countdown)":"Kod Gönder"),
+                      style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.lightBlueAccent,
+                      disabledForegroundColor: Colors.grey,
+                  ),
                   ),
 
                   const SizedBox(height: 15),
@@ -302,6 +323,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                     children: [
                       // Verify Code Button
                       ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.lightBlueAccent,
+                          disabledForegroundColor: Colors.grey,
+                        ),
                         onPressed: isSend ? () async
                         {
                           final verified = await AuthService.verifyOtp(
@@ -336,6 +363,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                           }
                         }: null,
                         child: const Text("Kodu Doğrula"),
+
                       ),
 
                       // Change Password Button
@@ -347,8 +375,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                               resetPassword();
                             }
                           }
-                              :null,
-                          child: const Text("Şifreyi Güncelle")
+                          :null,
+                          child: const Text("Şifreyi Güncelle"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.lightBlue,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: Colors.lightBlueAccent,
+                            disabledForegroundColor: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

@@ -23,6 +23,7 @@ class _LoginPageState extends State<LoginPage>
   final FocusNode emailFocus = FocusNode();
   final FocusNode passwordFocus = FocusNode();
 
+  bool _loading = false;
   bool isPasswordVisible = false;
 
   @override
@@ -38,19 +39,39 @@ class _LoginPageState extends State<LoginPage>
   //login function
   void _login() async
   {
+    if (_loading == true) return;
+
+    setState(()
+    {
+      _loading = true;
+    });
+
     bool success = await AuthService.login(emailInput.text, passwordInput.text);
 
     if (success)
     {
-      await const FlutterSecureStorage().write(key: "email", value: emailInput.text.trim());
+      final storage = FlutterSecureStorage();
+      await storage.write(key: "email", value: emailInput.text.trim());
 
       if (!mounted) return;
+
+      setState(()
+      {
+        _loading = false;
+      });
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainPage()),
       );
-    } else {
+    }
+    else
+    {
+      setState(()
+      {
+        _loading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Kullanıcı Adı yada Şifre Yanlış"),
@@ -140,6 +161,10 @@ class _LoginPageState extends State<LoginPage>
                               );
                             },
                             child: const Text("Kaydol"),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightBlue,
+                                foregroundColor: Colors.white
+                            ),
                           ),
 
                           //  Login Button
@@ -148,7 +173,11 @@ class _LoginPageState extends State<LoginPage>
                             {
                               _login();
                             },
-                            child: const Text("Giriş Yap"),
+                            child: _loading ? const CircularProgressIndicator() : const Text("Giriş Yap"),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightBlue,
+                                foregroundColor: Colors.white
+                            ),
                           ),
                         ],
                       ),
@@ -165,7 +194,7 @@ class _LoginPageState extends State<LoginPage>
                           );
                         },
                         child: const Text("Şifremi unuttum?",style: TextStyle(color: Colors.blue),)
-                      )
+                      ),
                     ],
                   )
               )

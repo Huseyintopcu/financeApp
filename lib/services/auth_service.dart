@@ -108,6 +108,23 @@ class AuthService {
         return RegisterResponse(success: false, message: "Bağlantı Hatası");
     }
   }
+  
+  // DELETE ACCOUNT
+  Future<bool> deleteAccount(String email) async
+  {
+    try
+    {
+      final response = await _dio.delete("/auth/delete",data: email);
+
+      return response.statusCode == 200;
+    }
+    catch (e)
+    {
+
+      logger.e("Error on delete an Expenses : $e");
+      return false;
+    }
+  }
 
   // SEND OTP
   static Future<bool> sendOtp(String email) async {

@@ -193,7 +193,11 @@ class _AddExpense_pageState extends State<AddExpensePage>
                     onPressed: isLoading ? null :saveExpense,
                     child: isLoading
                       ? const CircularProgressIndicator()
-                      : const Text("Gider Ekle")
+                      : const Text("Gider Ekle"),
+                    style: ElevatedButton.styleFrom(
+                     backgroundColor: Colors.lightBlue,
+                    foregroundColor: Colors.white
+                ),
                 ),
               )
             ],

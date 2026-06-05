@@ -195,6 +195,10 @@ class _AddBillPageState extends  State<AddBillPage>
                   child: isLoading
                       ? const CircularProgressIndicator()
                       : const Text("Ödeneceği Kaydet"),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                      foregroundColor: Colors.white
+                  ),
                 ),
               )
             ],

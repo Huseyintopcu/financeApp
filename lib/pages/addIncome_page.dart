@@ -193,10 +193,14 @@ class _AddIncomePageState extends State<AddIncomePage>
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                    onPressed: isLoading ? null :saveIncome,
+                    onPressed: isLoading ? null : saveIncome,
                     child: isLoading
                         ? const CircularProgressIndicator()
                         : const Text("Geliri Kaydet"),
+                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                      foregroundColor: Colors.white
+                  ),
                 ),
               )
             ],
