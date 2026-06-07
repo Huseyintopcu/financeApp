@@ -172,6 +172,7 @@ class AuthService {
   static Future<void> logout() async
   {
     await TokenStorage.deleteTokens();
+    await storage.delete(key: "email");
   }
 
   // TOKEN CHECK

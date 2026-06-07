@@ -3,8 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import '../core/network/api_client.dart';
-import '../models/Income_request.dart';
-import '../models/income_model.dart';
+import 'package:finance_app/models/income_model.dart';
+import 'package:finance_app/models/income_request.dart';
 
 
 class IncomeService

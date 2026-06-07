@@ -1,6 +1,7 @@
 import 'package:finance_app/security/token_storage.dart';
 import 'package:finance_app/services/auth_service.dart';
 import 'package:finance_app/services/notification_service.dart';
+import 'package:finance_app/splash_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
@@ -19,23 +20,20 @@ void main() async
 
   ApiCLient.init();
 
-  bool loggedIn = await AuthService.isLoggedIn();
-  runApp(FinanceApp(isLoggedIn: loggedIn ));
+  runApp(const FinanceApp());
 }
 
 class FinanceApp extends StatelessWidget
 {
-  final bool  isLoggedIn;
-
-  const FinanceApp({super.key,required this.isLoggedIn});
+  const FinanceApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'Finance App',
-      home: isLoggedIn ? const MainPage() : const LoginPage(),
+      title: 'Moneta',
+      home: SplashPage(),
     );
   }
 }

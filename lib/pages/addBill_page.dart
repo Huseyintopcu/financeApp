@@ -106,7 +106,7 @@ class _AddBillPageState extends  State<AddBillPage>
     }
     finally
     {
-      if (!mounted)
+      if (mounted)
       {
         setState(()
         {
