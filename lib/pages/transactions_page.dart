@@ -222,11 +222,11 @@ class _TransactionsPageState extends State<TransactionsPage>
       {
         setState(()
         {
-          incomes.removeWhere((element) => element.id == bill.id);
+          bills.removeWhere((element) => element.id == bill.id);
         });
         try
         {
-          await IncomeService().deleteIncome(bill.id);
+          await BillService().deleteBill(bill.id);
         }
         catch (e)
         {
