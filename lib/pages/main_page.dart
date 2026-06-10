@@ -1,6 +1,5 @@
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:dio/dio.dart';
 import 'package:finance_app/pages/addBill_page.dart';
 import 'package:finance_app/pages/addExpense_page.dart';
 import 'package:finance_app/pages/addIncome_page.dart';
@@ -18,9 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 
-import '../core/network/api_client.dart';
-import '../models/expense_model.dart';
-import '../models/expense_request.dart';
 import '../models/transaction_model.dart';
 
 class MainPage extends StatefulWidget
@@ -101,8 +97,6 @@ class HomeDashboard extends StatefulWidget
 
 class _HomeDashboardState extends State<HomeDashboard>
 {
-  static Dio get _dio => ApiCLient.dio;
-
   double savingTarget =0.0;
   double income = 0.0;
   double expense = 0.0;
@@ -374,70 +368,69 @@ class _HomeDashboardState extends State<HomeDashboard>
         SizedBox(height: 8,),
 
         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children:
-            [
-              // Income Card
-              Expanded(
-                  child: SizedBox(
-                    height: 110,
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children:  [
-                            Text(
-                                "Toplam Gelir",
-                                style: TextStyle(fontSize: 16)
-                            ),
-                            SizedBox(height: 8),
-                            AutoSizeText(
-                                "₺$income",
-                                maxLines: 1,
-                                minFontSize: 8,
-                                style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold
-                                )
-                            ),
-                          ],
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children:
+          [
+            // Income Card
+            Expanded(
+              child: SizedBox(
+                height: 110,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children:  [
+                        Text(
+                          "Toplam Gelir",
+                           style: TextStyle(fontSize: 16)
                         ),
-                      ),
+                        SizedBox(height: 8),
+                        AutoSizeText(
+                          "₺$income",
+                           maxLines: 1,
+                           minFontSize: 8, 
+                           style: TextStyle(
+                             fontSize: 24,
+                             fontWeight: FontWeight.bold
+                           )
+                        ),
+                      ],
                     ),
-                  )
-
-              ),
+                  ),
+                ),
+              )
+            ),
 
               // Savings Target Card
-              Expanded(
-                  child:Card(
-                      child:SizedBox(
-                        height: 103,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Text(
-                                "Tassaruf Hedefi",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              SizedBox(height: 8),
-                              AutoSizeText(
-                                "₺$savingTarget",
-                                maxLines: 1,
-                                minFontSize: 8,
-                                style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold
-                                ),
-                              )
-                            ],
-                          ),
+            Expanded(
+              child:Card(
+                child:SizedBox(
+                  height: 103,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Tassaruf Hedefi",
+                           style: TextStyle(fontSize: 16),
                         ),
-                      )
-                  )
+                        SizedBox(height: 8),
+                        AutoSizeText(
+                          "₺$savingTarget",
+                          maxLines: 1,
+                          minFontSize: 8,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                )
               )
-            ]
+            )
+          ]
         ),
 
 
@@ -466,51 +459,57 @@ class _HomeDashboardState extends State<HomeDashboard>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 // Add income button
-                SizedBox(
-                  width: 170,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async
-                    {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AddIncomePage()),
-                      );
-
-                      if (result == true)
+                Expanded(
+                  child: SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async
                       {
-                        loadData();
-                      }
-                    },
-                    child: const Text("💵 Gelir Ekle"),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlue,
-                        foregroundColor: Colors.white
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddIncomePage()),
+                        );
+
+                        if (result == true)
+                        {
+                          loadData();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white
+                      ),
+                      child: const AutoSizeText("💵 Gelir Ekle",maxLines: 1,minFontSize: 8,),
                     ),
                   ),
                 ),
 
-                // Add bill button
-                SizedBox(
-                  width: 170,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: () async
-                    {
-                      final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddBillPage()));
+                const SizedBox(width: 8),
 
-                      if (result == true)
+                // Add bill button
+                Expanded(
+                  child: SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () async
                       {
-                        loadData();
-                      }
-                    },
-                    icon: const Icon(Icons.receipt_long, size: 20),
-                    label: const Text("Ödenecek Ekle",maxLines: 1,),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlue,
-                        foregroundColor: Colors.white
+                        final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddBillPage()));
+
+                        if (result == true)
+                        {
+                          loadData();
+                        }
+                      },
+                      icon: const Icon(Icons.receipt_long, size: 20),
+                      label: const AutoSizeText("Ödenecek Ekle",maxLines: 1,minFontSize: 8),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white
+                      ),
                     ),
-                  ),
+                  )
                 )
               ],
             ),
@@ -521,46 +520,52 @@ class _HomeDashboardState extends State<HomeDashboard>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 // Add expense button
-                SizedBox(
-                  width: 170,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async
-                    {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context)=> const AddExpensePage()),
-                      );
-
-                      if (result == true)
+                Expanded(
+                  child: SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async
                       {
-                        loadData();
-                      }
-                    },
-                    child: const Text("📉 Gider Ekle"),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlue,
-                        foregroundColor: Colors.white
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context)=> const AddExpensePage()),
+                        );
+
+                        if (result == true)
+                        {
+                          loadData();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white
+                      ),
+                      child: const AutoSizeText("📉 Gider Ekle",maxLines: 1,minFontSize: 8),
                     ),
                   ),
                 ),
 
+                const SizedBox(width: 8),
+
                 // Add expense withe camere button
-                SizedBox(
-                  width: 170,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: ()
-                    {
-                      _showAiSourceOptions();
-                    },
-                    child: const Text("📷 Fiş"),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlue,
-                        foregroundColor: Colors.white
+                Expanded(
+                  child: SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: ()
+                      {
+                        _showAiSourceOptions();
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white
+                      ),
+                      child: const AutoSizeText("📷 Fiş",maxLines: 1,minFontSize: 8,),
                     ),
-                  ),
-                )
+                  )
+                ),
               ],
             )
           ],
