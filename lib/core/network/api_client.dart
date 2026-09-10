@@ -9,7 +9,7 @@ class ApiCLient
 {
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "https://financeappbackend-yenv.onrender.com",
+      baseUrl: "http://192.168.1.238:8080",
         connectTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 60)
@@ -67,7 +67,7 @@ class ApiCLient
 
                 final refresDio = Dio(
                   BaseOptions(
-                    baseUrl: "https://financeappbackend-yenv.onrender.com",
+                    baseUrl: "http://192.168.1.238:8080",
                     connectTimeout: const Duration(seconds: 30),
                     sendTimeout: const Duration(seconds: 30),
                     receiveTimeout: const Duration(seconds: 60),

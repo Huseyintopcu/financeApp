@@ -82,6 +82,44 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  // GOOGLE LOGIN
+  void _googleLogin() async
+  {
+    if (_loading) return;
+
+    setState(() {
+      _loading = true;
+    });
+
+    final bool success = await AuthService.googleLogin();
+
+    if (!mounted) return;
+
+    setState(() {
+      _loading = false;
+    });
+
+    if (success)
+    {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainPage(),
+        ),
+      );
+    }
+    else
+    {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Google ile giriş yapılamadı"),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context)
   {
@@ -180,6 +218,32 @@ class _LoginPageState extends State<LoginPage>
                             ),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Google Login
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: _loading ? null : _googleLogin,
+                          icon: const Icon(
+                            Icons.account_circle,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            "Google ile Giriş Yap",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            disabledBackgroundColor: Colors.grey,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 20),

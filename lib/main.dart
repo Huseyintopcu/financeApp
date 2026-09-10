@@ -16,7 +16,10 @@ void main() async
   print("MAIN STARTED");
 
   await TokenStorage.init();
+
   await Firebase.initializeApp();
+
+  await AuthService.initializeGoogleSignIn();
 
   ApiCLient.init();
 
